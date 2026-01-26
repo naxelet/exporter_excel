@@ -9,6 +9,7 @@ use \Bitrix\Main\IO\Directory;
 use \Bitrix\Main\Config\Option;
 use \Bitrix\Iblock\IblockTable;
 use \Bitrix\Iblock\PropertyTable;
+use \Bitrix\Main\SiteTable;
 
 Loc::loadMessages(__FILE__);
 
@@ -23,6 +24,7 @@ class akatan_exporter_excel extends CModule
     public string $PARTNER_URI;
     public string $IBLOCK_TYPE_ID = 'services';
     public string $IBLOCK_CODE = 'uploading_order';
+    public string $MODULE_GROUP_RIGHTS;
 
     public function __construct()
     {
@@ -38,6 +40,7 @@ class akatan_exporter_excel extends CModule
         $this->MODULE_DESCRIPTION = Loc::getMessage('AKATAN_EXCEL_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = Loc::getMessage('AKATAN_EXCEL_PARTNER_NAME');
         $this->PARTNER_URI = Loc::getMessage('AKATAN_EXCEL_PARTNER_URI');
+        $this->MODULE_GROUP_RIGHTS = 'N';
     }
 
     /**
@@ -48,22 +51,51 @@ class akatan_exporter_excel extends CModule
     {
         global $USER, $APPLICATION;
 
+//        $MODULE_RIGHT = $APPLICATION->GetGroupRight($this->MODULE_ID);
+//        if ($MODULE_RIGHT>="W") {}
         if (!$USER->IsAdmin())
         {
-            return;
+            $APPLICATION->AuthForm(Loc::getMessage('ACCESS_DENIED'));
         }
 
-        if ($this->isVersionD7()) {
-            ModuleManager::registerModule($this->MODULE_ID);
+        if (
+            $this->isVersionPHP() &&
+            $this->isVersionD7()
+        ) {
+            $context = Application::getInstance()->getContext();
+            $request = $context->getRequest();
+            $session = Application::getInstance()->getSession();
 
-            $this->InstallDB();
-            $this->InstallEvents();
-            $this->InstallFiles();
+            // не существует или меньше 2
+            if ($request['step'] < 2) {
 
-            $APPLICATION->IncludeAdminFile(
-                Loc::getMessage('AKATAN_EXCEL_INSTALL_TITLE'),
-                __DIR__ . '/step.php'
-            );
+
+                $APPLICATION->IncludeAdminFile(
+                    Loc::getMessage('AKATAN_EXCEL_INSTALL_TITLE_STEP_1'),
+                    __DIR__ . '/step1.php'
+                );
+            }
+            if ($request['step'] == 2) {
+                // регистрируем модуль
+                // теперь можно использовать неймспейсы
+                ModuleManager::registerModule($this->MODULE_ID);
+
+                $this->InstallDB();
+                $this->InstallEvents();
+                $this->InstallFiles();
+
+                $APPLICATION->IncludeAdminFile(
+                    Loc::getMessage('AKATAN_EXCEL_INSTALL_TITLE_STEP_2'),
+                    __DIR__ . '/step2.php'
+                );
+            }
+//            if ($request->getPost('install') !== null) {
+//                $selectedSites = $request->getPost('selected_sites');
+//                if (!empty($selectedSites)) {
+//                    $session->set('akatan_excel_selected_sites', $selectedSites);
+//                    //Option::set($this->MODULE_ID, 'SELECTED_SITES', serialize($selectedSites));
+//                }
+//            }
         } else {
             $APPLICATION->ThrowException(Loc::getMessage('AKATAN_EXCEL_INSTALL_ERROR_VERSION'));
         }
@@ -75,17 +107,34 @@ class akatan_exporter_excel extends CModule
      */
     public function DoUninstall(): void
     {
-        global $USER;
+        global $USER, $APPLICATION;
 
         if (!$USER->IsAdmin())
         {
-            return;
+            $APPLICATION->AuthForm(Loc::getMessage('ACCESS_DENIED'));
         }
+        $request = Application::getInstance()->getContext()->getRequest();
+        $step = (int)$request->get('step');
 
-//        $this->UnInstallFiles();
-//        $this->UnInstallDB();
+        if ($step < 2) {
+            $APPLICATION->IncludeAdminFile(
+                Loc::getMessage('AKATAN_EXCEL_UNINSTALL_TITLE'),
+                __DIR__ . '/unstep1.php'
+            );
+        } elseif ($step == 2) {
+            $this->UnInstallDB([
+                'savedata' => $request->get('savedata') !== 'Y'
+            ]);
+            $this->UnInstallEvents();
+            $this->UnInstallFiles();
 
-        ModuleManager::unRegisterModule($this->MODULE_ID);
+            ModuleManager::unRegisterModule($this->MODULE_ID);
+
+            $APPLICATION->IncludeAdminFile(
+                Loc::getMessage('AKATAN_EXCEL_UNINSTALL_TITLE'),
+                __DIR__ . '/unstep2.php'
+            );
+        }
     }
 
     /**
@@ -95,6 +144,14 @@ class akatan_exporter_excel extends CModule
     public function InstallDB(): bool
     {
         Loader::includeModule('iblock');
+
+        // Получаем выбранные сайты из настроек
+        $selectedSites = Option::get($this->MODULE_ID, 'SELECTED_SITES', '');
+        if (!$selectedSites) {
+            // Если сайты не выбраны, используем все активные сайты
+            $sites = $this->getAllSites();
+            $selectedSites = array_keys($sites);
+        }
 
         // Создаем тип инфоблока, если не существует
         $iblockType = new \CIBlockType;
@@ -129,7 +186,7 @@ class akatan_exporter_excel extends CModule
             'NAME' => Loc::getMessage('AKATAN_EXCEL_IBLOCK_NAME'),
             'CODE' => $this->IBLOCK_CODE,
             'IBLOCK_TYPE_ID' => $this->IBLOCK_TYPE_ID,
-            'SITE_ID' => ['s1'],
+            'SITE_ID' => $selectedSites,
             'SORT' => 100,
             'GROUP_ID' => ['2' => 'R'],
             'VERSION' => 2,
@@ -302,6 +359,22 @@ class akatan_exporter_excel extends CModule
         return true;
     }
 
+    private function getAllSites()
+    {
+        $sites = [];
+
+        $dbSites = SiteTable::getList([
+            'filter' => ['ACTIVE' => 'Y'],
+            'order' => ['SORT' => 'ASC']
+        ]);
+
+        while ($site = $dbSites->fetch()) {
+            $sites[$site['LID']] = $site['NAME'] . ' [' . $site['LID'] . ']';
+        }
+
+        return $sites;
+    }
+
     /**
      * Проверяет поддержку D7 ядра
      * @return mixed
@@ -313,4 +386,25 @@ class akatan_exporter_excel extends CModule
             '14.00.00'
         );
     }
+
+    private function isVersionPHP(): mixed
+    {
+        return version_compare(PHP_VERSION, '8.0.0') >= 0;
+    }
+
+    /**
+     *
+     * @return array[]
+     */
+//    private function GetModuleRightList() {
+//        return [
+//            'reference_id' => ['D', 'K', 'S', 'W'],
+//            'reference' => [
+//                '[D] ' . Loc::getMessage('AKATAN_EXCEL_DENIED'),
+//                '[K] ' . Loc::getMessage('AKATAN_EXCEL_READ_COMPONENT'),
+//                '[S] ' . Loc::getMessage('AKATAN_EXCEL_WRITE_SETTINGS'),
+//                '[W] ' . Loc::getMessage('AKATAN_EXCEL_FULL'),
+//            ]
+//        ];
+//    }
 }
