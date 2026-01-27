@@ -8,7 +8,7 @@ Loc::loadMessages(__FILE__);
 
 global $APPLICATION, $USER;
 
-$module_id = 'akatan.exporter_excel';
+$module_id = 'akatan.exporterexcel';
 
 if (!Loader::includeModule($module_id)) {
     $APPLICATION->ThrowException(Loc::getMessage('AKATAN_EXCEL_NOT_INSTALLED'));

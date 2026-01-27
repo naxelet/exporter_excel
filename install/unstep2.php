@@ -8,6 +8,9 @@ global $APPLICATION;
 if (!check_bitrix_sessid()) {
     return;
 }
+
+$request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+$saveData = $request->getPost('savedata') === 'Y';
 ?>
 
 <div style="max-width: 800px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -21,8 +24,6 @@ if (!check_bitrix_sessid()) {
     </div>
 
     <?php
-    $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
-    $saveData = $request->get('savedata') === 'Y';
 
     if ($saveData) {
         ?>
@@ -50,7 +51,7 @@ if (!check_bitrix_sessid()) {
     ?>
 
     <div style="text-align: center; padding-top: 20px; border-top: 1px solid #dee2e6;">
-        <a href="/bitrix/admin/module_admin.php?lang=<?= LANGUAGE_ID ?>"
+        <a href="/bitrix/admin/partner_modules.php?lang=<?= LANGUAGE_ID ?>"
            style="display: inline-block; padding: 10px 20px; background: #0069b4; color: white; text-decoration: none; border-radius: 4px;">
             ← <?= Loc::getMessage('AKATAN_EXCEL_BACK_TO_LIST') ?>
         </a>

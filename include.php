@@ -6,7 +6,7 @@ use \Bitrix\Main\Event;
 use \Bitrix\Main\Data\Cache;
 use \Bitrix\Main\Localization\Loc;
 
-require_once(__DIR__ . '/autoload.php');
+//require_once(__DIR__ . '/autoload.php');
 
 global $USER;
 
@@ -16,8 +16,8 @@ Loader::registerAutoLoadClasses(
     []
 );
 
-class AkatanExcelImporter
+class AkatanExporterExcel
 {
-    const MODULE_ID = 'akatan.excel_importer';
+    const MODULE_ID = 'akatan.exporterexcel';
     private static $siteId = null;
 }

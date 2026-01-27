@@ -5,7 +5,7 @@ AddEventHandler("main", "OnBuildGlobalMenu", "setExcelImporterMenu");
 
 function setExcelImporterMenu(&$aGlobalMenu, &$aModuleMenu)
 {
-    $module_id = 'akatan.excel_importer';
+    $module_id = 'akatan.exporterexcel';
     $arMenu = [];
     // проверка доступа к модулю
     if ($GLOBALS['APPLICATION']->GetGroupRight($module_id) < 'S') {

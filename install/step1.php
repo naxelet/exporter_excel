@@ -33,10 +33,10 @@ if (empty($selectedSites) && !empty($sites)) {
     $selectedSites = array_keys($sites);
 }
 ?>
-<form action="<?= $APPLICATION->GetCurPage() ?>">
+<form action="<?= $APPLICATION->GetCurPage() ?>" method="post">
     <?= bitrix_sessid_post() ?>
     <input type="hidden" name="lang" value="<?= LANGUAGE_ID ?>">
-    <input type="hidden" name="id" value="akatan.exporter_excel">
+    <input type="hidden" name="id" value="akatan.exporterexcel">
     <input type="hidden" name="install" value="Y">
     <input type="hidden" name="step" value="2">
 
@@ -121,15 +121,15 @@ if (empty($selectedSites) && !empty($sites)) {
         <ul style="margin: 0; padding-left: 20px;">
             <li style="margin-bottom: 8px;">
                 <strong><?= Loc::getMessage('AKATAN_EXCEL_IBLOCK_TYPE') ?>:</strong>
-                AKATAN_EXCEL_data
+                services
             </li>
             <li style="margin-bottom: 8px;">
                 <strong><?= Loc::getMessage('AKATAN_EXCEL_IBLOCK_NAME') ?>:</strong>
-                Данные транзакций
+                Записи из Excel
             </li>
             <li style="margin-bottom: 8px;">
                 <strong><?= Loc::getMessage('AKATAN_EXCEL_IBLOCK_CODE') ?>:</strong>
-                AKATAN_EXCEL_IBLOCK
+                uploading_order
             </li>
             <li style="margin-bottom: 8px;">
                 <strong><?= Loc::getMessage('AKATAN_EXCEL_CREATED_FIELDS') ?>:</strong>
@@ -154,7 +154,7 @@ if (empty($selectedSites) && !empty($sites)) {
         </a>
 
         <button type="submit"
-                name="install"
+                name=""
                 style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
             ✅ <?= Loc::getMessage('AKATAN_EXCEL_INSTALL_BUTTON') ?>
         </button>

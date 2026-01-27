@@ -4,7 +4,7 @@ use \Bitrix\Main\Loader;
 use \Bitrix\Main\Config\Option;
 use Bitrix\Main\HttpApplication;
 
-$module_id = 'akatan.excel_importer'; // переменная $module_id обязательно в таком виде, иначе права доступа не сработают
+$module_id = 'akatan.exporterexcel'; // переменная $module_id обязательно в таком виде, иначе права доступа не сработают
 
 Loc::loadMessages($_SERVER['DOCUMENT_ROOT'] . BX_ROOT. '/modules/main/options.php');
 Loc::loadMessages(__FILE__);

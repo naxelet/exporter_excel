@@ -1,15 +1,21 @@
 <?php
+
 use Bitrix\Main\Localization\Loc;
+use \Bitrix\Main\Config\Option;
 
 Loc::loadMessages(__FILE__);
 
 if (!check_bitrix_sessid()) {
-return;
+    return;
+}
+
+echo '<pre>' . Option::get('akatan.exporterexcel', 'IBLOCK_ID') . '</pre>';
+echo '<pre>' . Option::get('akatan.exporterexcel', 'SELECTED_SITES') . '</pre>';
 ?>
 
-<form action="<?= $APPLICATION->GetCurPage() ?>">
+<form action="<?= $APPLICATION->GetCurPage() ?>" method="post">
     <?= bitrix_sessid_post() ?>
-    <input type="hidden" name="id" value="my.module">
+    <input type="hidden" name="id" value="akatan.exporterexcel">
     <input type="hidden" name="uninstall" value="Y">
     <input type="hidden" name="step" value="2">
 

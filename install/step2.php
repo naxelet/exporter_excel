@@ -10,7 +10,7 @@ global $APPLICATION;
 if (!check_bitrix_sessid()) {
     return;
 }
-$selectedSites = Option::get('my.module', 'SELECTED_SITES', '');
+$selectedSites = Option::get('akatan.exporterexcel', 'SELECTED_SITES', '');
 $siteNames = [];
 
 if ($selectedSites) {
@@ -55,7 +55,7 @@ if ($exception = $APPLICATION->GetException()) {
 
         <?php
         // Получаем ID созданного инфоблока
-        $iblockId = Option::get('akatan.module', 'IBLOCK_ID');
+        $iblockId = Option::get('akatan.exporterexcel', 'IBLOCK_ID');
 
         if ($iblockId && CModule::IncludeModule('iblock')) {
             $res = CIBlock::GetByID($iblockId);
@@ -145,21 +145,12 @@ if ($exception = $APPLICATION->GetException()) {
                 <strong><?= Loc::getMessage('AKATAN_EXCEL_STEP_2') ?>:</strong>
                 <?= Loc::getMessage('AKATAN_EXCEL_STEP_2_DESC') ?>
             </li>
-            <li style="margin-bottom: 8px;">
-                <strong><?= Loc::getMessage('AKATAN_EXCEL_STEP_3') ?>:</strong>
-                <a href="/bitrix/admin/AKATAN_EXCEL_settings.php?lang=<?= LANGUAGE_ID ?>" style="color: #0069b4; text-decoration: underline;">
-                    <?= Loc::getMessage('AKATAN_EXCEL_STEP_3_DESC') ?>
-                </a>
-            </li>
-            <li>
-                <strong><?= Loc::getMessage('AKATAN_EXCEL_STEP_4') ?>:</strong>
-                <?= Loc::getMessage('AKATAN_EXCEL_STEP_4_DESC') ?>
             </li>
         </ul>
     </div>
 
     <div style="text-align: center; padding-top: 20px; border-top: 1px solid #dee2e6;">
-        <a href="/bitrix/admin/module_admin.php?lang=<?= LANGUAGE_ID ?>"
+        <a href="/bitrix/admin/partner_modules.php?lang=<?= LANGUAGE_ID ?>"
            style="display: inline-block; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
             ← <?= Loc::getMessage('AKATAN_EXCEL_BACK_TO_LIST') ?>
         </a>

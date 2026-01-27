@@ -13,18 +13,18 @@ use \Bitrix\Main\SiteTable;
 
 Loc::loadMessages(__FILE__);
 
-class akatan_exporter_excel extends CModule
+class Akatan_Exporterexcel extends CModule
 {
-    public string $MODULE_ID = 'akatan.exporter_excel';
-    public string $MODULE_VERSION;
-    public string $MODULE_VERSION_DATE;
-    public string $MODULE_NAME;
-    public string $MODULE_DESCRIPTION;
-    public string $PARTNER_NAME;
-    public string $PARTNER_URI;
+    //public string $MODULE_ID = 'akatan.exporterexcel';
+    //public string $MODULE_VERSION;
+    //public string $MODULE_VERSION_DATE;
+    //public string $MODULE_NAME;
+    //public string $MODULE_DESCRIPTION;
+    //public string $MODULE_GROUP_RIGHTS;
+    //public string $PARTNER_NAME;
+    //public string $PARTNER_URI;
     public string $IBLOCK_TYPE_ID = 'services';
     public string $IBLOCK_CODE = 'uploading_order';
-    public string $MODULE_GROUP_RIGHTS;
 
     public function __construct()
     {
@@ -36,6 +36,7 @@ class akatan_exporter_excel extends CModule
             $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
         }
 
+        $this->MODULE_ID = 'akatan.exporterexcel';
         $this->MODULE_NAME = Loc::getMessage('AKATAN_EXCEL_MODULE_NAME');
         $this->MODULE_DESCRIPTION = Loc::getMessage('AKATAN_EXCEL_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = Loc::getMessage('AKATAN_EXCEL_PARTNER_NAME');
@@ -65,21 +66,25 @@ class akatan_exporter_excel extends CModule
             $context = Application::getInstance()->getContext();
             $request = $context->getRequest();
             $session = Application::getInstance()->getSession();
+            $step = (int)trim(htmlspecialcharsbx(strip_tags($request->getPost('step'))));
 
             // не существует или меньше 2
-            if ($request['step'] < 2) {
-
-
+            if ($step < 2) {
                 $APPLICATION->IncludeAdminFile(
                     Loc::getMessage('AKATAN_EXCEL_INSTALL_TITLE_STEP_1'),
                     __DIR__ . '/step1.php'
                 );
             }
-            if ($request['step'] == 2) {
+            if ($step === 2) {
+                $selected_sites = (is_array($request['selected_sites']) && (count($request['selected_sites']) > 0)) ?
+                    serialize($request['selected_sites']) : '';
+                //exit(print_r($request->getPost('install'),true));
                 // регистрируем модуль
-                // теперь можно использовать неймспейсы
                 ModuleManager::registerModule($this->MODULE_ID);
-
+                // теперь можно использовать неймспейсы
+                if ($request->getPost('install') !== null) {
+                    Option::set($this->MODULE_ID, 'SELECTED_SITES', $selected_sites);
+                }
                 $this->InstallDB();
                 $this->InstallEvents();
                 $this->InstallFiles();
@@ -89,13 +94,6 @@ class akatan_exporter_excel extends CModule
                     __DIR__ . '/step2.php'
                 );
             }
-//            if ($request->getPost('install') !== null) {
-//                $selectedSites = $request->getPost('selected_sites');
-//                if (!empty($selectedSites)) {
-//                    $session->set('akatan_excel_selected_sites', $selectedSites);
-//                    //Option::set($this->MODULE_ID, 'SELECTED_SITES', serialize($selectedSites));
-//                }
-//            }
         } else {
             $APPLICATION->ThrowException(Loc::getMessage('AKATAN_EXCEL_INSTALL_ERROR_VERSION'));
         }
@@ -114,16 +112,16 @@ class akatan_exporter_excel extends CModule
             $APPLICATION->AuthForm(Loc::getMessage('ACCESS_DENIED'));
         }
         $request = Application::getInstance()->getContext()->getRequest();
-        $step = (int)$request->get('step');
+        $step = (int)trim(htmlspecialcharsbx(strip_tags($request->get('step'))));
 
         if ($step < 2) {
             $APPLICATION->IncludeAdminFile(
                 Loc::getMessage('AKATAN_EXCEL_UNINSTALL_TITLE'),
                 __DIR__ . '/unstep1.php'
             );
-        } elseif ($step == 2) {
+        } elseif ($step === 2) {
             $this->UnInstallDB([
-                'savedata' => $request->get('savedata') !== 'Y'
+                'savedata' => trim(htmlspecialcharsbx(strip_tags($request->getPost('savedata')))) === 'Y'
             ]);
             $this->UnInstallEvents();
             $this->UnInstallFiles();
@@ -146,7 +144,7 @@ class akatan_exporter_excel extends CModule
         Loader::includeModule('iblock');
 
         // Получаем выбранные сайты из настроек
-        $selectedSites = Option::get($this->MODULE_ID, 'SELECTED_SITES', '');
+        $selectedSites = unserialize(Option::get($this->MODULE_ID, 'SELECTED_SITES', ''));
         if (!$selectedSites) {
             // Если сайты не выбраны, используем все активные сайты
             $sites = $this->getAllSites();
@@ -307,7 +305,6 @@ class akatan_exporter_excel extends CModule
         Loader::includeModule('iblock');
 
         $iblockId = Option::get($this->MODULE_ID, 'IBLOCK_ID');
-
         if ($iblockId && !$arParams['savedata']) {
             // Удаляем инфоблок со всеми данными
             \CIBlock::Delete($iblockId);
@@ -328,11 +325,11 @@ class akatan_exporter_excel extends CModule
      */
     public function InstallFiles(): bool
     {
-        CopyDirFiles(
+        /*CopyDirFiles(
             __DIR__ . '/admin',
             $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin',
             true, true
-        );
+        );*/
         return true;
     }
 
@@ -342,10 +339,10 @@ class akatan_exporter_excel extends CModule
      */
     public function UnInstallFiles(): bool
     {
-        DeleteDirFiles(
+        /*DeleteDirFiles(
             __DIR__ . '/admin',
             $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin'
-        );
+        );*/
         return true;
     }
 
