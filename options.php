@@ -2,7 +2,7 @@
 use \Bitrix\Main\Localization\Loc;
 use \Bitrix\Main\Loader;
 use \Bitrix\Main\Config\Option;
-use Bitrix\Main\HttpApplication;
+use \Bitrix\Main\HttpApplication;
 
 $module_id = 'akatan.exporterexcel'; // переменная $module_id обязательно в таком виде, иначе права доступа не сработают
 
