@@ -6,6 +6,7 @@ use \Bitrix\Main\EventManager;
 use \Bitrix\Main\Application;
 use \Bitrix\Main\Loader;
 use \Bitrix\Main\IO\Directory;
+use \Bitrix\Main\IO\File;
 use \Bitrix\Main\Config\Option;
 use \Bitrix\Iblock\IblockTable;
 use \Bitrix\Iblock\PropertyTable;
@@ -25,6 +26,7 @@ class Akatan_Exporterexcel extends CModule
     //public string $PARTNER_URI;
     public string $IBLOCK_TYPE_ID = 'services';
     public string $IBLOCK_CODE = 'uploading_order';
+    public array $exclusionAdminFiles;
 
     public function __construct()
     {
@@ -42,6 +44,11 @@ class Akatan_Exporterexcel extends CModule
         $this->PARTNER_NAME = Loc::getMessage('AKATAN_EXCEL_PARTNER_NAME');
         $this->PARTNER_URI = Loc::getMessage('AKATAN_EXCEL_PARTNER_URI');
         $this->MODULE_GROUP_RIGHTS = 'Y';
+        $this->exclusionAdminFiles = [
+            '.',
+            '..',
+            'menu.php',
+        ];
     }
 
     /**
@@ -145,6 +152,7 @@ class Akatan_Exporterexcel extends CModule
 
         // Получаем выбранные сайты из настроек
         $selectedSites = unserialize(Option::get($this->MODULE_ID, 'SELECTED_SITES', ''));
+        $iblockId = null;
         if (!$selectedSites) {
             // Если сайты не выбраны, используем все активные сайты
             $sites = $this->getAllSites();
@@ -202,14 +210,34 @@ class Akatan_Exporterexcel extends CModule
             'XML_ID' => $this->IBLOCK_CODE,
         ];
 
-        $iblockId = $iblock->Add($arFields);
+        $res_iblock = \CIBlock::GetList(
+            [],
+            Array(
+                'TYPE'=>$this->IBLOCK_TYPE_ID,
+                'ACTIVE'=>'Y',
+                "CNT_ACTIVE"=>"Y",
+                "CODE"=>$this->IBLOCK_CODE
+            ), true
+        );
+        $res_iblock->SelectedRowsCount();
+//        while($ar_res = $res->Fetch())
+//        {
+//            echo $ar_res['NAME'].': '.$ar_res['ELEMENT_CNT'];
+//        }
 
+        if ($res_iblock->SelectedRowsCount() === 0) {
+            $iblockId = $iblock->Add($arFields);
+            // Создаем пользовательские свойства
+            $this->createProperties($iblockId);
+        } else {
+            while($arIBlock = $res_iblock->Fetch()) {
+                $iblockId = $arIBlock['ID'];
+                break;
+            }
+        }
         if ($iblockId) {
             // Сохраняем ID инфоблока в настройках модуля
             Option::set($this->MODULE_ID, 'IBLOCK_ID', $iblockId);
-
-            // Создаем пользовательские свойства
-            $this->createProperties($iblockId);
         }
 
         return true;
@@ -220,8 +248,11 @@ class Akatan_Exporterexcel extends CModule
      * @param $iblockId Id инфоблока
      * @return void
      */
-    private function createProperties(string|int $iblockId): void
+    private function createProperties(int $iblockId): void
     {
+        if ($iblockId <= 0) {
+            return;
+        }
         $properties = [
             'BY_DATE' => [
                 'NAME' => 'Дата',
@@ -321,15 +352,37 @@ class Akatan_Exporterexcel extends CModule
 
     /**
      * Работа с файлами
+     * @param array $arParams
      * @return boolean
      */
-    public function InstallFiles(): bool
+    public function InstallFiles(array $arParams = []): bool
     {
-        /*CopyDirFiles(
-            __DIR__ . '/admin',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin',
-            true, true
-        );*/
+        $path_admin = $this->GetPath() . '/install/admin';
+        if (Directory::isDirectoryExists($path_admin)) {
+            CopyDirFiles(
+                $path_admin,
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin'
+            ); // Если есть файлы для
+            if ($dir = opendir($path_admin)) {
+                while (false !== $item = readdir($dir)) {
+                    // в $this->exclusionAdminFiles содержаться файлы-исключения
+                    if (in_array($item, $this->exclusionAdminFiles)) {
+                        continue;
+                    }
+//                    file_put_contents(
+//                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin/' . $this->MODULE_ID . '__' . $item,
+/*                        '<' . '? require($_SERVER["DOCUMENT_ROOT"]."' . $this->GetPath(true) . '/install/admin/' . $item . '");?>'*/
+//                    );
+                    file_put_contents(
+                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin/' . $this->MODULE_ID . '__' . $item,
+                                  '<' . '?php require("' . realpath($this->GetPath(true) . '/install/admin/' . $item) . '");?>'
+                    );
+                }
+                closedir($dir);
+            }
+        } else {
+            throw new \Bitrix\Main\IO\InvalidPathException($path_admin);
+        }
         return true;
     }
 
@@ -339,10 +392,21 @@ class Akatan_Exporterexcel extends CModule
      */
     public function UnInstallFiles(): bool
     {
-        /*DeleteDirFiles(
-            __DIR__ . '/admin',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin'
-        );*/
+        if (Directory::isDirectoryExists($path = $this->GetPath() . '/install/admin')) {
+            DeleteDirFiles(
+                $_SERVER['DOCUMENT_ROOT'] . $this->GetPath() . '/install/admin/',
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin'
+            );
+            if ($dir = opendir($path)) {
+                while (false !== $item = readdir($dir)) {
+                    if (in_array($item, $this->exclusionAdminFiles)) {
+                        continue;
+                    }
+                    File::deleteFile($_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin/' . $this->MODULE_ID . '__' . $item);
+                }
+                closedir($dir);
+            }
+        }
         return true;
     }
 
@@ -403,5 +467,19 @@ class Akatan_Exporterexcel extends CModule
                 '[W] ' . Loc::getMessage('AKATAN_EXCEL_FULL'),
             ]
         ];
+    }
+
+    /**
+     * Получение пути до текущей дирректории от корня
+     */
+    public function GetPath($notDocumentRoot = false)
+    {
+        if ($notDocumentRoot) {
+            return str_ireplace(
+                Application::getDocumentRoot(), '', dirname(__DIR__)
+            );
+        } else {
+            return dirname(__DIR__);
+        }
     }
 }

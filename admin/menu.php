@@ -1,36 +1,41 @@
 <?php
-use Bitrix\Main\Localization\Loc;
+defined('B_PROLOG_INCLUDED') and (B_PROLOG_INCLUDED === true) or die();
 
-AddEventHandler("main", "OnBuildGlobalMenu", "setExcelImporterMenu");
+use \Bitrix\Main\Localization\Loc;
 
-function setExcelImporterMenu(&$aGlobalMenu, &$aModuleMenu)
-{
-    $module_id = 'akatan.exporterexcel';
-    $arMenu = [];
-    // проверка доступа к модулю
-    if ($GLOBALS['APPLICATION']->GetGroupRight($module_id) < 'S') {
-        $GLOBALS['APPLICATION']->AuthForm(Loc::getMessage('ACCESS_DENIED'));
-    } else {
-        $arMenu = [
-            'menu_id' => 'global_menu_akatan_item',
-            'title' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_ITEM_TITLE'),
-            'text' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_ITEM_TEXT'),
-            'sort' => 100,
-            'items_id' => 'global_menu_akatan_item_general',
-            'icon' => 'util_menu_icon',
-            'url' => 'akatan.excel_importer.menu.php?lang=' . LANGUAGE_ID,
-        ];
-        $aGlobalMenu['global_menu_akatan'] = [
-            'menu_id' => 'global_menu_akatan',
-            'title' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_TITLE'),
-            'text' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_TEXT'),
-            'sort' => 1000,
-            'items_id' => 'global_menu_akatan_items',
-            'icon' => 'clouds_menu_icon',
-            'items' => [
-                $module_id => $arMenu
-            ]
-        ];
+Loc::loadMessages(__FILE__);
+
+$MODULE_ID = 'akatan.exporterexcel';
+
+if ($GLOBALS['APPLICATION']->GetGroupRight($MODULE_ID) > 'D') {
+    if (!CModule::IncludeModule($MODULE_ID)) {
+        return false;
     }
-
+    //$GLOBALS['APPLICATION']->SetAdditionalCSS('/bitrix/service/' . $MODULE_ID . '/menu.css');
+    $aMenu = array(
+        'parent_menu' => 'global_menu_services',
+        //'section' => $MODULE_ID,
+        'sort' => 100,
+        'title' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_ITEM_TITLE'),
+        'text' => Loc::getMessage('EXCEL_IMPORTER_GLOBAL_MENU_ITEM_TEXT'),
+        "items_id" => "menu_akatan_item",
+        "icon" => "util_menu_icon",
+    );
+    // дочерния ветка меню
+        $aMenu["items"][] =  array(
+            // название подпункта меню
+            'text' => 'Страница модуля',
+            // ссылка для перехода
+            'url' => 'akatan.exporterexcel__general.php?lang=' . LANGUAGE_ID
+        );
+    // дочерния ветка меню
+    $aMenu["items"][] = [
+        // название подпункта меню
+        'text' => 'Админка модуля',
+        // ссылка для перехода
+        'url' => 'settings.php?lang=ru&mid=' . $MODULE_ID
+    ];
+    return $aMenu;
 }
+$GLOBALS['APPLICATION']->AuthForm(Loc::getMessage('ACCESS_DENIED'));
+return false;
