@@ -161,12 +161,12 @@ class Akatan_Exporterexcel extends CModule
             'SORT' => 100,
             'LANG' => [
                 'ru' => [
-                    'NAME' => 'Служебные',
+                    'NAME' => Loc::getMessage('AKATAN_EXCEL_IBLCK_TYPE_NAME_RU'),
                     'SECTION_NAME' => 'Разделы',
                     'ELEMENT_NAME' => 'Элементы'
                 ],
                 'en' => [
-                    'NAME' => 'Services',
+                    'NAME' => Loc::getMessage('AKATAN_EXCEL_IBLCK_TYPE_NAME_EN'),
                     'SECTION_NAME' => 'Sections',
                     'ELEMENT_NAME' => 'Elements'
                 ]
