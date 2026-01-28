@@ -41,7 +41,7 @@ class Akatan_Exporterexcel extends CModule
         $this->MODULE_DESCRIPTION = Loc::getMessage('AKATAN_EXCEL_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = Loc::getMessage('AKATAN_EXCEL_PARTNER_NAME');
         $this->PARTNER_URI = Loc::getMessage('AKATAN_EXCEL_PARTNER_URI');
-        $this->MODULE_GROUP_RIGHTS = 'N';
+        $this->MODULE_GROUP_RIGHTS = 'Y';
     }
 
     /**
@@ -390,18 +390,18 @@ class Akatan_Exporterexcel extends CModule
     }
 
     /**
-     *
+     * Права доступа
      * @return array[]
      */
-//    private function GetModuleRightList() {
-//        return [
-//            'reference_id' => ['D', 'K', 'S', 'W'],
-//            'reference' => [
-//                '[D] ' . Loc::getMessage('AKATAN_EXCEL_DENIED'),
-//                '[K] ' . Loc::getMessage('AKATAN_EXCEL_READ_COMPONENT'),
-//                '[S] ' . Loc::getMessage('AKATAN_EXCEL_WRITE_SETTINGS'),
-//                '[W] ' . Loc::getMessage('AKATAN_EXCEL_FULL'),
-//            ]
-//        ];
-//    }
+    private function GetModuleRightList() {
+        return [
+            'reference_id' => ['D', 'K', 'S', 'W'],
+            'reference' => [
+                '[D] ' . Loc::getMessage('AKATAN_EXCEL_DENIED'),
+                '[K] ' . Loc::getMessage('AKATAN_EXCEL_READ_COMPONENT'),
+                '[S] ' . Loc::getMessage('AKATAN_EXCEL_WRITE_SETTINGS'),
+                '[W] ' . Loc::getMessage('AKATAN_EXCEL_FULL'),
+            ]
+        ];
+    }
 }
