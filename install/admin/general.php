@@ -66,7 +66,12 @@ if ($message) {
 }
 
 ?>
-<form method="POST" action="<?= $APPLICATION->GetCurPage() ?>" ENCTYPE="multipart/form-data" name="post_form">
+<form
+        method="POST"
+        action="<?= $APPLICATION->GetCurPage() ?>"
+        ENCTYPE="multipart/form-data"
+        name="post_form"
+>
 <?
 // проверка идентификатора сессии
 echo bitrix_sessid_post();

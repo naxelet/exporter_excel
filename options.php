@@ -1,4 +1,7 @@
 <?php
+// подключим все необходимые файлы:
+require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php"); // первый общий пролог
+
 use \Bitrix\Main\Localization\Loc;
 use \Bitrix\Main\Loader;
 use \Bitrix\Main\Config\Option;
@@ -13,9 +16,11 @@ Loc::loadMessages($_SERVER['DOCUMENT_ROOT'] . BX_ROOT. '/modules/main/options.ph
 
 // проверка доступа к модулю
 $moduleGroupRight = $APPLICATION->GetGroupRight($module_id);
-if ($moduleGroupRight < 'S') {
+if ($moduleGroupRight < 'R') {
     $APPLICATION->AuthForm(Loc::getMessage('ACCESS_DENIED'));
 }
+require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/'.$module_id.'/include.php'); // инициализация модуля
+require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/'.$module_id.'/prolog.php'); // пролог модуля
 
 Loader::includeModule($module_id);
 
@@ -104,19 +109,28 @@ if ($request->isPost() && $request['Update'] && check_bitrix_sessid()) {
     }*/
     LocalRedirect($APPLICATION->getCurPage() . '?mid=' . $request['mid'] . '&amp;lang=' . $request['lang']);
 }
-// визуальный вывод
+// ******************************************************************** //
+//                ВЫВОД ФОРМЫ                                           //
+// ******************************************************************** //
+
+// не забудем разделить подготовку данных и вывод
+require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_admin_after.php'); // второй общий пролог
 
 $tabControl = new \CAdminTabControl('tabControl', $aTabs);
-?>
-<?php
-$tabControl->Begin();
 ?>
     <form
         method="post"
         action="<?= $APPLICATION->getCurPage()?>?mid=<?= htmlspecialcharsbx($request['mid'])?>&amp;lang=<?= $request['lang']?>"
         name="akatan_exporterexcel_sittings"
     >
-        <?php foreach ($aTabs as $aTab):?>
+        <?php
+        // проверка идентификатора сессии
+        echo bitrix_sessid_post();
+        // отобразим заголовки закладок
+        $tabControl->Begin();
+        ?>
+        <?php
+        /*foreach ($aTabs as $aTab):?>
             <?php
             if (isset($aTab['OPTIONS'])) {
                 $tabControl->BeginNextTab();
@@ -130,12 +144,26 @@ $tabControl->Begin();
             require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/admin/group_rights.php'); // для корректной
         //работы обязательно требуется объявление переменной $module_id
             $tabControl->Buttons();
+        */?>
+        <?php
+        // завершение формы - вывод кнопок сохранения изменений
+        $tabControl->Buttons();
         ?>
 
         <input type="submit" name="Update" value="<?= Loc::getMessage('MAIN_SAVE')?>">
         <input type="reset" name="reset" value="<?= Loc::getMessage('MAIN_RESET')?>">
-        <?= bitrix_sessid_post()?>
+
+        <?php
+        // завершаем интерфейс закладок
+        $tabControl->End();
+
+        // информационная подсказка
+        echo BeginNote();
+        ?>
+        <span class="required">*</span><?php echo Loc::getMessage("REQUIRED_FIELDS")?>
+        <?php echo EndNote();?>
     </form>
 <?php
-$tabControl->End();
+// завершение страницы
+require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/epilog_admin.php');
 ?>
