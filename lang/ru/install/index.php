@@ -15,3 +15,8 @@ $MESS['AKATAN_EXCEL_IBLCK_TYPE_NAME_EN'] = 'Services';
 $MESS['AKATAN_EXCEL_UNINSTALL_WARNING'] = 'Внимание! Модуль будет удален из системы.';
 $MESS['AKATAN_EXCEL_UNINSTALL_SAVE_DATA'] = 'Сохранить данные (инфоблок и его содержимое)';
 $MESS['AKATAN_EXCEL_UNINSTALL_DELETE'] = 'Удалить';
+
+$MESS['AKATAN_EXCEL_DENIED'] = 'Доступ закрыт';
+$MESS['AKATAN_EXCEL_READ_COMPONENT'] = 'Чтение';
+$MESS['AKATAN_EXCEL_WRITE_SETTINGS'] = 'Запись настроек';
+$MESS['AKATAN_EXCEL_FULL'] = 'Полный доступ';
