@@ -1,0 +1,22 @@
+<?php
+$MESS['AKATAN_EXCEL_IMPORT_TITLE'] = 'Импорт данных из XML файла';
+$MESS['AKATAN_EXCEL_UPLOAD_FILE'] = 'Загрузка файла';
+$MESS['AKATAN_EXCEL_SELECT_FILE'] = 'Выберите файл для импорта:';
+$MESS['AKATAN_EXCEL_ALLOWED_FORMATS'] = 'Поддерживаемые форматы: XML, Excel (XLSX, XLS), CSV';
+$MESS['AKATAN_EXCEL_IMPORT_SETTINGS'] = 'Настройки импорта:';
+$MESS['AKATAN_EXCEL_UPDATE_EXISTING'] = 'Обновлять существующие записи';
+$MESS['AKATAN_EXCEL_SKIP_ERRORS'] = 'Пропускать строки с ошибками';
+$MESS['AKATAN_EXCEL_START_IMPORT'] = 'Начать импорт';
+$MESS['AKATAN_EXCEL_BACK_TO_SETTINGS'] = 'Назад к настройкам';
+$MESS['AKATAN_EXCEL_IBLOCK_NAME'] = 'Название инфоблока';
+$MESS['AKATAN_EXCEL_LAST_IMPORT'] = 'Последний импорт';
+$MESS['AKATAN_EXCEL_IMPORT_DATE'] = 'Дата импорта';
+$MESS['AKATAN_EXCEL_IMPORTED_ELEMENTS'] = 'Импортировано элементов';
+$MESS['AKATAN_EXCEL_IMPORT_FILE'] = 'Файл импорта';
+$MESS['AKATAN_EXCEL_CURRENT_IBLOCK'] = 'Текущий инфоблок';
+$MESS['AKATAN_EXCEL_TOTAL_ELEMENTS'] = 'Всего элементов:';
+$MESS['AKATAN_EXCEL_VIEW_ELEMENTS'] = 'Просмотр элементов';
+$MESS['AKATAN_EXCEL_UPLOAD_ERROR'] = 'Ошибка загрузки файла';
+$MESS['AKATAN_EXCEL_FILE_MOVE_ERROR'] = 'Ошибка перемещения файла';
+$MESS['AKATAN_EXCEL_NO_FILE_SELECTED'] = 'Файл не выбран';
+$MESS['AKATAN_EXCEL_INVALID_FILE_TYPE'] = 'Неверный тип файла. Разрешены только XML, Excel и CSV файлы.';
