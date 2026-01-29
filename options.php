@@ -4,13 +4,16 @@ use \Bitrix\Main\Loader;
 use \Bitrix\Main\Config\Option;
 use \Bitrix\Main\HttpApplication;
 
+global $APPLICATION;
+
 $module_id = 'akatan.exporterexcel'; // переменная $module_id обязательно в таком виде, иначе права доступа не сработают
 
-Loc::loadMessages($_SERVER['DOCUMENT_ROOT'] . BX_ROOT. '/modules/main/options.php');
 Loc::loadMessages(__FILE__);
+Loc::loadMessages($_SERVER['DOCUMENT_ROOT'] . BX_ROOT. '/modules/main/options.php');
 
 // проверка доступа к модулю
-if ($APPLICATION->GetGroupRight($module_id) < 'S') {
+$moduleGroupRight = $APPLICATION->GetGroupRight($module_id);
+if ($moduleGroupRight < 'S') {
     $APPLICATION->AuthForm(Loc::getMessage('ACCESS_DENIED'));
 }
 
@@ -99,11 +102,13 @@ if ($request->isPost() && $request['Update'] && check_bitrix_sessid()) {
             }
         }
     }*/
-    LocalRedirect($APPLICATION->getCurPage().'?mid=' . $request['mid'] . '&amp;lang=' . $request['lang']);
+    LocalRedirect($APPLICATION->getCurPage() . '?mid=' . $request['mid'] . '&amp;lang=' . $request['lang']);
+}
+// визуальный вывод
 
-    // визуальный вывод
-
-$tabControl = new CAdminTabControl('tabControl', $aTabs);
+$tabControl = new \CAdminTabControl('tabControl', $aTabs);
+?>
+<?php
 $tabControl->Begin();
 ?>
     <form
@@ -112,10 +117,13 @@ $tabControl->Begin();
         name="akatan_exporterexcel_sittings"
     >
         <?php foreach ($aTabs as $aTab):?>
-            <?php if ($aTab['OPTIONS']) {
+            <?php
+            if (isset($aTab['OPTIONS'])) {
                 $tabControl->BeginNextTab();
-                __AdmSittingsDrawList($module_id, $aTab['OPTIONS']);
-            }?>
+                __AdmSettingsDrawList($module_id, $aTab['OPTIONS']);
+                //echo '<pre>' . print_r($aTab,true) . '</pre>';
+            }
+            ?>
         <?php
             endforeach;
             $tabControl->BeginNextTab();
@@ -130,4 +138,4 @@ $tabControl->Begin();
     </form>
 <?php
 $tabControl->End();
-}
+?>

@@ -22,12 +22,12 @@ if ($GLOBALS['APPLICATION']->GetGroupRight($MODULE_ID) > 'D') {
         "icon" => "util_menu_icon",
     );
     // дочерния ветка меню
-        $aMenu["items"][] =  array(
-            // название подпункта меню
-            'text' => 'Страница модуля',
-            // ссылка для перехода
-            'url' => 'akatan.exporterexcel__general.php?lang=' . LANGUAGE_ID
-        );
+    $aMenu["items"][] =  array(
+        // название подпункта меню
+        'text' => 'Страница модуля',
+        // ссылка для перехода
+        'url' => 'akatan.exporterexcel__general.php?lang=' . LANGUAGE_ID
+    );
     // дочерния ветка меню
     $aMenu["items"][] = [
         // название подпункта меню

@@ -457,7 +457,8 @@ class Akatan_Exporterexcel extends CModule
      * Права доступа
      * @return array[]
      */
-    private function GetModuleRightList() {
+    public function GetModuleRightList(): array
+    {
         return [
             'reference_id' => ['D', 'K', 'S', 'W'],
             'reference' => [
