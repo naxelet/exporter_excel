@@ -34,18 +34,6 @@ $aTabs = [
         'DIV' => 'edit1',
         'TAB' => Loc::getMessage('EXCEL_IMPORTER_TAB_OPTION'),
         'TITLE' => Loc::getMessage('EXCEL_IMPORTER_TITLE_OPTION'),
-        'OPTIONS' => [
-            Loc::getMessage('EXCEL_IMPORTER_GENERAL_SITTING'),
-            [
-                'excel_importer_file',
-                Loc::getMessage('EXCEL_IMPORTER_GENERAL_FILE'),
-                '', // Значение по умолчанию
-                [
-                    'text',
-                    50
-                ]
-            ],
-        ],
     ],
     [
         'DIV' => 'edit2',
@@ -55,7 +43,10 @@ $aTabs = [
 ];
 /**
  * end::список вкладок с настройками
- */ 
+ */
+
+$iblockId = trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
+$iblockSites = unserialize(Option::get($module_id, 'SELECTED_SITES', ''));
 
 // сохранение формы
 if ($request->isPost() && $request['Update'] && check_bitrix_sessid()) {
@@ -129,7 +120,66 @@ $tabControl = new \CAdminTabControl('tabControl', $aTabs);
         // отобразим заголовки закладок
         $tabControl->Begin();
         ?>
+        <?php $tabControl->BeginNextTab(); ?>
+
+        <tr>
+            <td width="40%">
+                <label for="iblock_id"><?= Loc::getMessage('AKATAN_EXCEL_SETTING_IBLOCK_ID') ?>:</label>
+            </td>
+            <td width="60%">
+                <input type="text"
+                       id="iblock_id"
+                       name="main_settings[iblock_id]"
+                       value="<?= $iblockId; ?>"
+                       size="50"
+                       disabled
+                >
+            </td>
+        </tr>
+
+        <?php if ($iblockId): ?>
+            <tr>
+                <td colspan="2">
+                    <hr>
+                    <h3><?= Loc::getMessage('AKATAN_EXCEL_IBLOCK_INFO') ?></h3>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label><?= Loc::getMessage('AKATAN_EXCEL_IBLOCK_ID') ?>:</label>
+                </td>
+                <td>
+                    <strong><?= $iblockId ?></strong>
+                    <a href="/bitrix/admin/iblock_edit.php?ID=<?= $iblockId ?>&type=services&lang=<?= LANGUAGE_ID ?>"
+                       style="margin-left: 10px; text-decoration: none;">
+                        ✎ <?= Loc::getMessage('AKATAN_EXCEL_EDIT_IBLOCK') ?>
+                    </a>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label><?= Loc::getMessage('AKATAN_EXCEL_ASSIGNED_SITES') ?>:</label>
+                </td>
+                <td>
+                    <?php if ($iblockSites && is_array($iblockSites)) :?>
+                        <?php //echo '<pre>' . print_r($iblockSites, true) . '</pre>'?>
+                        <?php foreach ($iblockSites as $siteId):
+                            $rsSite = \CSite::GetByID($siteId);
+                            if ($arSite = $rsSite->Fetch()) {
+                                echo trim(htmlspecialcharsbx($arSite['NAME'] . ' [' . $arSite['LID'] . ']')) . '<br>';
+                            }
+                        endforeach;?>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endif; ?>
+
+        <?php $tabControl->BeginNextTab(); ?>
         <?php
+        require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/admin/group_rights.php'); // для корректной
+        //работы обязательно требуется объявление переменной $module_id
         /*foreach ($aTabs as $aTab):?>
             <?php
             if (isset($aTab['OPTIONS'])) {
