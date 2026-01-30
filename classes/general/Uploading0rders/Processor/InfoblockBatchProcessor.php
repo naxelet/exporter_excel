@@ -45,6 +45,6 @@ class InfoblockBatchProcessor extends BatchProcessor
 //            } else {
 //                $this->currentResult->updated++;
 //            }
-        echo ('<pre>' . print_r($item, true) . '</pre>');
+//        echo ('<pre>' . print_r($item, true) . '</pre>');
     }
 }

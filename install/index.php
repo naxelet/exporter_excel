@@ -441,11 +441,13 @@ class Akatan_Exporterexcel extends CModule
 
     public function InstallEvents(): bool
     {
+        // ToDo::агент для удаления старых файлов в /upload катлоге модуля
         return true;
     }
 
     public function UnInstallEvents(): bool
     {
+        // ToDo::агент для удаления старых файлов в /upload катлоге модуля
         return true;
     }
 

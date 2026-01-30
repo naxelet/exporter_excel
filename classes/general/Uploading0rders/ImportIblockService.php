@@ -3,6 +3,7 @@
 namespace Uploading0rders;
 
 use Bitrix\Main\DB\TransactionException;
+use \Uploading0rders\Error\ImportException;
 
 class ImportIblockService
 {
@@ -60,7 +61,7 @@ class ImportIblockService
     /**
      * Создает новый элемент
      * @array  $fields Параметры элемента
-     * @throws TransactionException | \Throwable
+     * @throws ImportException | \Throwable
      */
     public function createElement(
         array $fields
@@ -77,19 +78,19 @@ class ImportIblockService
         $element_id = $element->Add($preparedFields);
 
         if (!$element_id) {
-            throw new \Exception('Ошибка при добавлении элемента: ' . $element->LAST_ERROR);
-//                throw new ImportException(
-//                    Loc::getMessage('ELEMENT_CREATE_ERROR'),
-//                    ['errors' => $result->getErrorMessages(), 'fields' => $preparedFields]
-//                );
+            throw new ImportException(
+                'Ошибка при добавлении элемента.', //Loc::getMessage('ELEMENT_CREATE_ERROR'),
+                ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
+            );
         }
-//            $this->log("Создан элемент #{$elementId}: {$preparedFields['NAME']}");
+//            log("Создан элемент #{$elementId}: {$preparedFields['NAME']}");
         return (int) $element_id;
     }
 
     /**
-     * Обновление элемента через D7 ORM
-     * @throws \Exception
+     * Обновление элемента
+     * @array  $fields Параметры элемента
+     * @throws \ImportException
      */
     public function updateElement(
         array $fields
@@ -110,12 +111,18 @@ class ImportIblockService
             while($fields_element = $res_element->GetNext())
             {
                 if (!$element->Update($fields_element['ID'], $preparedFields)) {
-                    throw new \Exception($element->LAST_ERROR);
+                    throw new ImportException(
+                        'Ошибка при обновлении элемента.' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_UPDATE_ERROR'),
+                        ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
+                    );
                 }
                 return (int) $fields_element['ID'];
             }
         }
-        throw new \Exception('Элемент не найден. CODE: ' . $preparedFields['CODE']);
+        throw new ImportException(
+            'Элемент не найден. CODE: ' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_EMPTY_UPDATE_ERROR'),
+            ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
+        );
     }
 
     /**

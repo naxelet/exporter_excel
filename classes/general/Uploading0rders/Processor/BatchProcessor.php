@@ -2,10 +2,13 @@
 
 namespace Uploading0rders\Processor;
 
-use Bitrix\Main\DB\SqlQueryException;
+use \Bitrix\Main\DB\SqlQueryException;
+use \Bitrix\Main\Application;
 use \Uploading0rders\ImportIblockService;
 use \Uploading0rders\Interfaces\BatchProcessorInterface;
 use \Uploading0rders\Interfaces\DataMapperInterface;
+use \Uploading0rders\Services\ImportResult;
+use \Uploading0rders\Error\ImportException;
 
 
 /**
@@ -15,9 +18,8 @@ abstract class BatchProcessor implements BatchProcessorInterface
 {
     const VALID_MODES = ['create', 'update', 'create_or_update'];
     protected array $config;
-    private array $statistics = [];
     private array $batchBuffer = [];
-    //private ImportResult $currentResult;
+    private ImportResult $currentResult;
 
     /**
      * Конструктор процессора
@@ -34,8 +36,7 @@ abstract class BatchProcessor implements BatchProcessorInterface
     )
     {
         $this->config = array_merge($this->getDefaultConfig(), $config);
-        //$this->currentResult = new ImportResult();
-        $this->initializeStatistics();
+        $this->currentResult = new ImportResult();
         $this->validateSetting($this->config);
     }
 
@@ -43,31 +44,14 @@ abstract class BatchProcessor implements BatchProcessorInterface
 
     abstract protected function processItem(array $item, int $index): void;
 
-    private function initializeStatistics(): void
-    {
-        $this->statistics = [
-            'started_at' => null,
-            'finished_at' => null,
-            'total_rows' => 0,
-            'processed_rows' => 0,
-            'success_rows' => 0,
-            'error_rows' => 0,
-            'validation_errors' => 0,
-            'processing_errors' => 0,
-            'batches_processed' => 0,
-            'execution_time' => 0,
-            'memory_peak' => 0,
-        ];
-    }
-
     /**
      * @throws \Exception
      */
     private function validateSetting(array $setting): void
     {
         if (!in_array($setting['mode'] ?? 'create_or_update', static::VALID_MODES, true)) {
-            throw new \Exception('Некорректный режим импорта');
-            //throw new ImportException(Loc::getMessage('VALIDATION_INVALID_MODE'));
+//            throw new ImportException(Loc::getMessage('VALIDATION_INVALID_MODE'));
+            throw new ImportException('Некорректный режим импорта');
         }
 
         if ((int)$this->config['batch_size'] <= 0) {
@@ -75,18 +59,24 @@ abstract class BatchProcessor implements BatchProcessorInterface
         }
     }
 
-    public function setConfig(): array
+    public function setConfig(array $config): void
     {
-        return [];
+        $this->config = array_merge($this->config, $config);
     }
 
-    public function import(iterable $dataGenerator): array //$result = new ImportResult();
+    /**
+     * @param iterable $dataGenerator Строка из документа
+     * @return ImportResult Результат импорта
+     * @throws \Throwable
+     */
+    public function import(iterable $dataGenerator): ImportResult // array //$result = new ImportResult();
     {
-        $this->statistics['started_at'] = microtime(true);
-        $memoryStart = memory_get_usage(true);
+        $this->reset();
+        $this->currentResult->startTime = microtime(true);
+        $this->currentResult->memoryStart = memory_get_usage(true);
         try {
             foreach ($dataGenerator as $index => $row) {
-                $this->processRow($row, $index, $this->mapper);
+                $this->processRow($row, $index);
 
                 // Обработка пачки при достижении лимита
                 if (count($this->batchBuffer) >= $this->config['batch_size']) {
@@ -95,22 +85,17 @@ abstract class BatchProcessor implements BatchProcessorInterface
 
                 // Лимит ошибок
 //                if ($this->currentResult->failed >= $this->config['max_errors']) {
-//                    $this->logger->warning('Достигнут лимит ошибок, остановка импорта');
+//                    log->warning('Достигнут лимит ошибок, остановка импорта');
 //                    break;
 //                }
 //
 //                // Callback прогресса
-//                if ($this->config['progress_callback']) {
-//                    call_user_func($this->config['progress_callback'], $index, $this->currentResult);
-//                }
+                if ($this->config['progress_callback']) {
+                    call_user_func($this->config['progress_callback'], $index, $this->currentResult);
+                }
             }
 
-            // Вызов callback прогресса
-            if ($this->config['progress_callback']) {
-                //call_user_func($this->config['progress_callback'], $index, $result);
-            }
-
-            $this->statistics['total_rows']++;
+            $this->currentResult->totalRows++;
 
             // Обработка оставшейся пачки
             if (!empty($this->batchBuffer)) {
@@ -118,11 +103,10 @@ abstract class BatchProcessor implements BatchProcessorInterface
             }
 
         } catch (\Throwable $error) {
-            echo $error->getMessage();
-//            $this->handleCriticalError($error);
+            $this->handleCriticalError($error);
         }
-        $this->finalizeStatistics($memoryStart);
-        return [];
+        $this->finalizeImport();
+        return $this->currentResult;
     }
 
     /**
@@ -135,20 +119,20 @@ abstract class BatchProcessor implements BatchProcessorInterface
             // Маппинг данных
             $mappedProps = $this->mapper->map($row, $index);
 
-//            $this->currentResult->totalProcessed++;
+            $this->currentResult->totalProcessed++;
 
             // Только валидация
-//            if ($this->config['validate_only']) {
-//                $this->currentResult->validated++;
-//                return;
-//            }
+            if ($this->config['validate_only']) {
+                $this->currentResult->validated++;
+                return;
+            }
 
             // Сухой запуск (тестирование)
-//            if ($this->config['dry_run']) {
-//                $this->logger->debug("Dry run: строка {$index} обработана", $mappedData);
-//                $this->currentResult->validated++;
-//                return;
-//            }
+            if ($this->config['dry_run']) {
+//                log->debug("Dry run: строка {$index} обработана", $mappedData);
+                $this->currentResult->validated++;
+                return;
+            }
 
             // Добавление в буфер пачки
             $this->batchBuffer[] = [
@@ -156,15 +140,14 @@ abstract class BatchProcessor implements BatchProcessorInterface
                 'index' => $index,
             ];
 
-//        } catch (ImportException $e) {
-//            $this->handleRowError($index, $e);
+        } catch (ImportException $exception) {
+            $this->handleRowError($index, $exception);
         } catch (\Throwable $error) {
-            echo 'Неожиданная ошибка: ' . $error->getMessage();
-//            $this->handleRowError($index, new ImportException(
-//                'Неожиданная ошибка: ' . $error->getMessage(),
-//                ['error' => $error],
-//                $index
-//            ));
+            $this->handleRowError($index, new ImportException(
+                'Неожиданная ошибка: ' . $error->getMessage(),
+                ['error' => $error],
+                $index
+            ));
         }
     }
 
@@ -178,10 +161,10 @@ abstract class BatchProcessor implements BatchProcessorInterface
         if (empty($this->batchBuffer)) {
             return;
         }
-        $application = \Bitrix\Main\Application::getInstance();
+        $application = Application::getInstance();
         $connection = $application->getConnection();
 
-//        $this->logger->debug("Обработка пачки из " . count($this->batchBuffer) . " элементов");
+//        log->debug("Обработка пачки из " . count($this->batchBuffer) . " элементов");
         try {
             // Транзакция для целостности данных
             $connection->startTransaction();
@@ -192,14 +175,12 @@ abstract class BatchProcessor implements BatchProcessorInterface
         } catch (\Bitrix\Main\DB\TransactionException $exception) {
             // ROLLBACK
             $connection->rollbackTransaction();
-            throw $exception;
+            $this->handleCriticalError($exception);
         } catch (\Throwable $error) {
             $connection->rollbackTransaction();
-            throw $error;
+            $this->handleCriticalError($error);
         }
-//            } catch (ImportException $e) {
-//                $this->handleRowError($item['index'], $e);
-//            }
+
 
         // Очистка буфера
         $this->batchBuffer = [];
@@ -210,56 +191,79 @@ abstract class BatchProcessor implements BatchProcessorInterface
         }
     }
 
-//    /**
-//     * Обработка одного элемента
-//     */
+    /**
+     * Обработка критической ошибки
+     * @throws \Throwable
+     */
+    private function handleCriticalError(\Throwable $error): void
+    {
+        $this->currentResult->failed++;
 
-//    private function processItem(array $item, int $index): void
-//    {
-//        $elementData = $item['element'] ?? [];
-//        $properties = $item['properties'] ?? [];
-//        $sections = $item['sections'] ?? [];
-//
-//        if ($this->config['upsert_mode']) {
-//            // Режим upsert (создание или обновление)
-//            $result = $this->importService->upsertElement(
-//                $elementData,
-//                $properties,
-//                $sections,
-//                $this->config['xml_id_field'],
-//                true
-//            );
-//
-//            if ($result['created']) {
-//                $this->currentResult->created++;
-//            } else {
-//                $this->currentResult->updated++;
-//            }
-//
-//        } else {
-//            // Режим только создания
-//            $elementId = $this->importService->createElement(
-//                $elementData,
-//                $properties,
-//                $sections,
-//                $this->config['use_transaction']
-//            );
-//
-//            $this->currentResult->created++;
-//        }
-//
-//        $this->currentResult->successRows++;
-//    }
+        /*log->critical("Критическая ошибка импорта: " . $e->getMessage(), [
+            'exception' => $e,
+            'trace' => $e->getTraceAsString(),
+        ]);*/
+
+        throw $error;
+    }
 
     /**
-     * Финализация статистики
+     * Обработка ошибки строки
      */
-    private function finalizeStatistics(int $memoryStart): void
+    private function handleRowError(int $index, ImportException $exception): void
     {
-        $this->statistics['finished_at'] = microtime(true);
-        $this->statistics['execution_time'] =
-            $this->statistics['finished_at'] - $this->statistics['started_at'];
-        $this->statistics['memory_peak'] = memory_get_peak_usage(true) - $memoryStart;
+        $this->currentResult->addError($index, $exception);
+        $this->currentResult->failed++;
+
+        /*log->error("Ошибка в строке {$index}: " . $exception->getMessage(), [
+            'context' => $exception->getContext(),
+        ]);*/
+
+        // Прерывание при ошибках если настроено
+        if (!$this->config['skip_errors']) {
+            throw $exception;
+        }
+    }
+
+    /**
+     * Завершение импорта
+     */
+    private function finalizeImport(): void
+    {
+        $this->currentResult->endTime = microtime(true);
+        $this->currentResult->executionTime =
+            $this->currentResult->endTime - $this->currentResult->startTime;
+        $this->currentResult->memoryPeak =
+            memory_get_peak_usage(true) - $this->currentResult->memoryStart;
+
+        // log->info('Импорт завершен', $this->currentResult->toArray());
+
+        // Вывод статистики
+        if ($this->importService->debugMode) {
+            $this->printStatistics();
+        }
+    }
+    /**
+     * Вывод статистики
+     */
+    private function printStatistics(): void
+    {
+        $stats = $this->currentResult;
+
+        echo "\n" . str_repeat('=', 60) . "\n";
+        echo "СТАТИСТИКА ИМПОРТА\n";
+        echo str_repeat('=', 60) . "\n";
+        echo sprintf("Инфоблок: %s (ID: %d)\n",
+            $this->importService->getIblockCode(),
+            $this->importService->getIblockId()
+        );
+        echo sprintf("Всего обработано: %d\n", $stats->totalProcessed);
+        echo sprintf("Успешно: %d\n", $stats->successRows);
+        echo sprintf("  - Создано: %d\n", $stats->created);
+        echo sprintf("  - Обновлено: %d\n", $stats->updated);
+        echo sprintf("Ошибок: %d\n", $stats->failed);
+        echo sprintf("Время выполнения: %.2f сек\n", $stats->executionTime);
+        echo str_repeat('=', 60) . "\n";
     }
 
     public function getConfig(): array
@@ -267,12 +271,14 @@ abstract class BatchProcessor implements BatchProcessorInterface
         return $this->config;
     }
 
-    public function getResult(): array
+    public function getResult(): ImportResult
     {
-        return [];
+        return $this->currentResult;
     }
 
     public function reset(): void
     {
+        $this->batchBuffer = [];
+        $this->currentResult = new ImportResult();
     }
 }

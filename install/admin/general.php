@@ -11,6 +11,7 @@ use \Uploading0rders\ImportIblockService;
 use \Uploading0rders\Mapper\ColumnExcelMapper;
 use \Uploading0rders\Mapper\UploadingOrderMapper;
 use \Uploading0rders\Processor\InfoblockBatchProcessor;
+use \Uploading0rders\Services\ImportResult;
 
 global $APPLICATION;
 
@@ -56,8 +57,6 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-echo '<pre>' . realpath($uploadDir) . '</pre>';
-
 $APPLICATION->SetTitle('Настройка импорта');
 
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
@@ -81,20 +80,60 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 
             // Перемещаем загруженный файл
             if (move_uploaded_file($file['tmp_name'], $filePath)) {
-                $inputFileName =  realpath($filePath);
-                $logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
-                $activeSheetIndex = 0;
-                $settings = [
-                    'mode' => $mode,
-                    'skip_errors' => $skip_errors,
-                ];
-                $mapper_xml = new ColumnExcelMapper();
-                $mapper_loading = new UploadingOrderMapper();
-                $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
-                $excel_import = new ImportIblockService($iblockId);
-                $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
-                $ib_processor->import($excel_file->getRows(605));
-                echo 'success loading;';
+                try {
+                    $inputFileName =  realpath($filePath);
+                    $logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
+                    $activeSheetIndex = 0;
+                    $settings = [
+                        'mode' => $mode,
+                        'skip_errors' => $skip_errors,
+                    ];
+    //                $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
+                    $mapper_xml = new ColumnExcelMapper();
+                    $mapper_loading = new UploadingOrderMapper();
+                    $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
+                    $excel_import = new ImportIblockService($iblockId);
+                    $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
+                    $ib_processor->setConfig([
+                        'progress_callback' => function(int $processed, ImportResult $result) {
+                            if ($processed % 100 === 0) {
+                                echo "Прогресс: обработано {$processed} строк";
+                            }
+                        }
+                    ]);
+                    // toDo::валидация файла
+//                    if (!$excel_file->validateStructure($requiredColumns)) {
+//                        throw new \RuntimeException('Неверная структура файла');
+//                    }
+                    $result = $ib_processor->import($excel_file->getRows(605));
+
+                    // Вывод результатов
+                    echo "<h2>Результаты импорта</h2>";
+                    echo "<pre>";
+                    echo $result->getStatsString();
+                    echo "</pre>";
+
+                    if (!$result->isSuccess()) {
+                        echo "<h3>Ошибки:</h3>";
+                        echo "<ul>";
+                        foreach ($result->errors as $error) {
+                            echo "<li>Строка {$error['row']}: {$error['message']}</li>";
+                        }
+                        echo "</ul>";
+                    }
+                }  catch (\Throwable $error) {
+                    echo '<div style="color: red; padding: 20px; border: 1px solid red;">';
+                    echo '<h3>Ошибка импорта:</h3>';
+                    echo '<p>' . htmlspecialchars($error->getMessage()) . '</p>';
+                    echo '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
+                    echo '</div>';
+
+//                     log->error('Ошибка импорта', [
+//                            'message' => $error->getMessage(),
+//                            'trace' => $error->getTraceAsString(),
+//                        ]);}
+
+                }
             } else {
                 $errorMessage = Loc::getMessage('AKATAN_EXCEL_FILE_MOVE_ERROR');
             }
@@ -291,32 +330,6 @@ $tabControl->BeginNextTab();
         </div>
     </div>
 </div>
-<!--<form-->
-<!--        method="POST"-->
-<!--        action="--><?php //= $APPLICATION->GetCurPage() ?><!--"-->
-<!--        ENCTYPE="multipart/form-data"-->
-<!--        name="post_form"-->
-<!---->
-<?php
-/*
-// проверка идентификатора сессии
-echo bitrix_sessid_post();
-// отобразим заголовки закладок
-$tabControl->Begin();
-$tabControl->BeginNextTab();
-?>
-<!--    <tr>-->
-<!--        <td width="40%">--><?php //= "Активность" ?><!--</td>-->
-<!--        <td width="60%"><input type="checkbox" name="ACTIVE" value="Y" --><?// if ($str_ACTIVE == "Y") echo " checked" ?><!-->-->
-<!--        </td>-->
-<!--    </tr>-->
-<?php
-// выводит стандартные кнопки отправки формы
-$tabControl->Buttons();
-?>
-    <input class="adm-btn-save" type="submit" name="save" value="Сохранить настройки"/>
-<?*/
-?>
 <?php
 // завершаем интерфейс закладки
 $tabControl->End();

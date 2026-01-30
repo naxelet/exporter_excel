@@ -141,6 +141,22 @@ class ClientsHistoryExcel implements ImportExelInterface
         ];
     }
 
+    /**
+     * Проверка структуры файла
+     */
+    public function validateStructure(array $requiredColumns): bool
+    {
+        // Проверяем по маппингу
+        $mappedCodes = array_column($this->columnMapping->getMappingSchema(), 'code');
+        foreach ($requiredColumns as $column) {
+            if (!in_array($column, $mappedCodes, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function __destruct()
     {
         $this->spreadsheet->disconnectWorksheets();
