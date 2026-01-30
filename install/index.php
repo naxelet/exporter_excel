@@ -227,6 +227,11 @@ class Akatan_Exporterexcel extends CModule
 
         if ($res_iblock->SelectedRowsCount() === 0) {
             $iblockId = $iblock->Add($arFields);
+            $fields = \CIBlock::getFields($iblockId);
+            $fields['CODE']['IS_REQUIRED'] = 'Y';
+            $fields['CODE']['DEFAULT_VALUE']['UNIQUE'] = 'Y';
+            $fields['CODE']['DEFAULT_VALUE']['TRANSLITERATION'] = 'Y';
+            \CIBlock::setFields($iblockId, $fields);
             // Создаем пользовательские свойства
             $this->createProperties($iblockId);
         } else {
