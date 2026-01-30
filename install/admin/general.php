@@ -6,6 +6,11 @@ use \Bitrix\Main\Loader;
 use \Bitrix\Main\Config\Option;
 use \Bitrix\Main\HttpApplication;
 use \Bitrix\Main\Application;
+use \Uploading0rders\ClientsHistoryExcel;
+use \Uploading0rders\ImportIblockService;
+use \Uploading0rders\Mapper\ColumnExcelMapper;
+use \Uploading0rders\Mapper\UploadingOrderMapper;
+use \Uploading0rders\Processor\InfoblockBatchProcessor;
 
 global $APPLICATION;
 
@@ -39,7 +44,7 @@ $aTabs = [
  * end::список вкладок с настройками
  */
 
-$iblockId = trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
+$iblockId = (int)trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
 $iblockSites = unserialize(Option::get($module_id, 'SELECTED_SITES', ''));
 $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/upload/'.$module_id.'/';
 $importResult = [];
@@ -72,6 +77,18 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 
             // Перемещаем загруженный файл
             if (move_uploaded_file($file['tmp_name'], $filePath)) {
+                $inputFileName =  realpath($filePath);
+                $logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
+                $activeSheetIndex = 0;
+                $settings = [
+                    'mode' => 'create',
+                ];
+                $mapper_xml = new ColumnExcelMapper();
+                $mapper_loading = new UploadingOrderMapper();
+                $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
+                $excel_import = new ImportIblockService($iblockId);
+                $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
+                $ib_processor->import($excel_file->getRows(605));
                 echo 'success loading;';
             } else {
                 $errorMessage = Loc::getMessage('AKATAN_EXCEL_FILE_MOVE_ERROR');

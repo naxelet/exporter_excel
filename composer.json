@@ -1,0 +1,7 @@
+{
+  "autoload": {
+    "psr-4": {
+      "Uploading0rders\\": "classes/general/Uploading0rders"
+    }
+  }
+}

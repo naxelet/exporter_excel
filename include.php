@@ -6,18 +6,13 @@ use \Bitrix\Main\Event;
 use \Bitrix\Main\Data\Cache;
 use \Bitrix\Main\Localization\Loc;
 
-//require_once(__DIR__ . '/autoload.php');
+require_once(__DIR__ . '/vendor/autoload.php');
 
 global $USER;
 
 Loc::loadMessages(__FILE__);
 Loader::registerAutoLoadClasses(
     'akatan',
-    []
+    [
+    ]
 );
-
-class AkatanExporterExcel
-{
-    const MODULE_ID = 'akatan.exporterexcel';
-    private static $siteId = null;
-}
