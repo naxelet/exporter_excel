@@ -257,7 +257,7 @@ $tabControl->BeginNextTab();
                                 🚀 <?= Loc::getMessage('AKATAN_EXCEL_START_IMPORT') ?>
                             </button>
 
-                            <a href="/bitrix/admin/my_module_settings.php?lang=<?= LANGUAGE_ID ?>"
+                            <a href="/bitrix/admin/akatan_excel_settings.php?lang=<?= LANGUAGE_ID ?>"
                                style="margin-left: 10px; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
                                 ← <?= Loc::getMessage('AKATAN_EXCEL_BACK_TO_SETTINGS') ?>
                             </a>
