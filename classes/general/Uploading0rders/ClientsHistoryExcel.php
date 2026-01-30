@@ -80,12 +80,17 @@ class ClientsHistoryExcel implements ImportExelInterface
     /**
      * @param int $start_row Начинать со строки
      * @return Generator
+     * @throws \Exception
      */
     public function getRows(int $start_row = 1): \Generator
     {
         $max_row = $this->activeWorksheet->getHighestDataRow();
         $max_column = $this->activeWorksheet->getHighestDataColumn();
         $highest_column_index = Coordinate::columnIndexFromString($max_column);
+
+        if ($max_row < 1) {
+            throw new \Exception('Файл не содержит данных для импорта');
+        }
         for ($row = $start_row; $row <= ($max_row - 2); $row++) {
             yield $this->readRow($row, $highest_column_index);
         }
