@@ -56,9 +56,13 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
+echo '<pre>' . realpath($uploadDir) . '</pre>';
+
 $APPLICATION->SetTitle('Настройка импорта');
 
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
+    $mode = ($request['update_existing'] === 'Y') ? 'update' : 'create';
+    $skip_errors = ($request['skip_errors'] === 'Y');
     if (!empty($_FILES['xml_file']['tmp_name'])) {
         $file = $_FILES['xml_file'];
 
@@ -81,7 +85,8 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                 $logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
                 $activeSheetIndex = 0;
                 $settings = [
-                    'mode' => 'create',
+                    'mode' => $mode,
+                    'skip_errors' => $skip_errors,
                 ];
                 $mapper_xml = new ColumnExcelMapper();
                 $mapper_loading = new UploadingOrderMapper();
@@ -194,7 +199,7 @@ $tabControl->BeginNextTab();
                             </label>
                             <div style="display: flex; gap: 15px; align-items: center;">
                                 <label style="display: flex; align-items: center; gap: 5px;">
-                                    <input type="checkbox" name="update_existing" value="Y" checked>
+                                    <input type="checkbox" name="update_existing" value="Y">
                                     <?= Loc::getMessage('AKATAN_EXCEL_UPDATE_EXISTING') ?>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px;">

@@ -22,12 +22,21 @@ class InfoblockBatchProcessor extends BatchProcessor
      * @param array $item
      * @param int $index
      * @return void
+     * @throws \Exception
+     * @throws \Throwable
      */
     protected function processItem(array $item, int $index): void
     {
         switch ($this->config['mode']) {
             case 'create': {
                 $this->importService->createElement($item);
+                break;
+            }
+            case 'update': {
+                $this->importService->updateElement($item);
+                break;
+            }
+            case 'create_or_update': {
                 break;
             }
         }

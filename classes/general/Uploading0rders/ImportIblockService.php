@@ -89,12 +89,33 @@ class ImportIblockService
 
     /**
      * Обновление элемента через D7 ORM
+     * @throws \Exception
      */
-    private function updateElement(
+    public function updateElement(
         array $fields
     ): int
     {
-        return 0;
+        static::validatePropsImport($fields);
+        $element = new \CIBlockElement();
+        $element_id = null;
+
+        // Подготовка полей
+        $preparedFields = $this->prepareElementFields($fields);
+        $preparedFields['IBLOCK_ID'] = $this->iblockId;
+        $arSelect = ['ID', 'NAME', 'CODE'];
+        $arFilter = ['IBLOCK_ID' => IntVal($preparedFields['IBLOCK_ID']), 'CODE' => $preparedFields['CODE']];
+        $res_element = \CIBlockElement::GetList([], $arFilter, false, false, $arSelect);
+
+        if ($res_element->SelectedRowsCount() > 0) {
+            while($fields_element = $res_element->GetNext())
+            {
+                if (!$element->Update($fields_element['ID'], $preparedFields)) {
+                    throw new \Exception($element->LAST_ERROR);
+                }
+                return (int) $fields_element['ID'];
+            }
+        }
+        throw new \Exception('Элемент не найден. CODE: ' . $preparedFields['CODE']);
     }
 
     /**
