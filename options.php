@@ -72,32 +72,6 @@ if ($request->isPost() && $request['Update'] && check_bitrix_sessid()) {
             'TYPE' => 'OK'
         ]);
     }
-    /*foreach ($aTabs as $aTab) {
-        foreach ($aTab['OPTIONS'] as $arOption) {
-            if (!is_array($arOption)) { // если это название секции
-                continue;
-            }
-            if ($arOption['note']) { // если это примечание
-                continue;
-            }
-            if ($request['apply']) { // сохраняем введенные настройки
-                $optionValue = $request->getPost($arOption[0]);
-                if ($arOption[0] == 'switch_on') {
-                    if ($optionValue == '') {
-                        $optionValue = 'N';
-                    }
-                }
-                if ($arOption[0] == 'jquery_on') {
-                    if ($optionValue == '') {
-                        $optionValue = 'N';
-                    }
-                }
-                Option::set($module_id, $arOption[0], is_array($optionValue) ? implode(',', $optionValue) : $optionValue);
-            } elseif ($request['default']) { // устанавливаем по умолчанию
-                Option::set($module_id, $arOption[0], $arOption[2]);
-            }
-        }
-    }*/
     LocalRedirect($APPLICATION->getCurPage() . '?mid=' . $request['mid'] . '&amp;lang=' . $request['lang']);
 }
 // ******************************************************************** //
@@ -164,7 +138,6 @@ $tabControl = new \CAdminTabControl('tabControl', $aTabs);
                 </td>
                 <td>
                     <?php if ($iblockSites && is_array($iblockSites)) :?>
-                        <?php //echo '<pre>' . print_r($iblockSites, true) . '</pre>'?>
                         <?php foreach ($iblockSites as $siteId):
                             $rsSite = \CSite::GetByID($siteId);
                             if ($arSite = $rsSite->Fetch()) {

@@ -20,11 +20,9 @@ $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper
 $excel_import = new ImportIblockService(39);
 $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
 $ib_processor->import($excel_file->getRows(605));
+```
 
-echo '<pre>' . print_r($excel_file->getFileStatistics(),true) . '</pre>';
-echo '<pre>' . print_r($excel_import->getIblockId(),true) . '</pre>';
-echo '<pre>' . print_r($excel_import->getIblockCode(),true) . '</pre>';
-foreach ($excel_file->getRows(605) as $index => $row) {
-    echo '<pre>' . print_r($row, true) . '</pre><br>';
-}
+Файл сохраняется по пути
+```
+$upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $module_id . '/';
 ```

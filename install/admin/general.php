@@ -48,7 +48,7 @@ $aTabs = [
 $iblockId = (int)trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
 $iblockSites = unserialize(Option::get($module_id, 'SELECTED_SITES', ''));
 $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/upload/'.$module_id.'/';
-$importResult = [];
+$importResult = '';
 $errorMessage = '';
 $successMessage = '';
 
@@ -88,7 +88,6 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                         'mode' => $mode,
                         'skip_errors' => $skip_errors,
                     ];
-    //                $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
                     $mapper_xml = new ColumnExcelMapper();
                     $mapper_loading = new UploadingOrderMapper();
                     $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
@@ -102,31 +101,37 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                         }
                     ]);
                     // toDo::валидация файла
+//                    $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
 //                    if (!$excel_file->validateStructure($requiredColumns)) {
 //                        throw new \RuntimeException('Неверная структура файла');
 //                    }
+                    // ToDo::добавить в параметры формы начальную строку в файле
                     $result = $ib_processor->import($excel_file->getRows(605));
 
+                    Option::set($module_id, 'LAST_IMPORT_DATE', (new \DateTime())->format('Y-m-d H:i:s'));
+                    Option::set($module_id, 'LAST_IMPORT_FILE', $inputFileName);
+                    Option::set($module_id, 'LAST_IMPORT_COUNT', $result->getSuccessCount());
+
                     // Вывод результатов
-                    echo "<h2>Результаты импорта</h2>";
-                    echo "<pre>";
-                    echo $result->getStatsString();
-                    echo "</pre>";
+                    $importResult .= '<h2>Результаты импорта</h2>';
+                    $importResult .= '<pre>';
+                    $importResult .= $result->getStatsString();
+                    $importResult .= '</pre>';
 
                     if (!$result->isSuccess()) {
-                        echo "<h3>Ошибки:</h3>";
-                        echo "<ul>";
+                        $importResult .= '<h3>Ошибки:</h3>';
+                        $importResult .= '<ul>';
                         foreach ($result->errors as $error) {
-                            echo "<li>Строка {$error['row']}: {$error['message']}</li>";
+                            $importResult .= "<li>Строка {$error['row']}: {$error['message']}</li>";
                         }
-                        echo "</ul>";
+                        $importResult .= '</ul>';
                     }
                 }  catch (\Throwable $error) {
-                    echo '<div style="color: red; padding: 20px; border: 1px solid red;">';
-                    echo '<h3>Ошибка импорта:</h3>';
-                    echo '<p>' . htmlspecialchars($error->getMessage()) . '</p>';
-                    echo '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
-                    echo '</div>';
+                    $importResult .= '<div style="color: red; padding: 20px; border: 1px solid red;">';
+                    $importResult .= '<h3>Ошибка импорта:</h3>';
+                    $importResult .= '<p>' . htmlspecialchars($error->getMessage()) . '</p>';
+                    $importResult .= '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
+                    $importResult .= '</div>';
 
 //                     log->error('Ошибка импорта', [
 //                            'message' => $error->getMessage(),
@@ -194,7 +199,7 @@ $tabControl = new \CAdminTabControl('tabControl', $aTabs);
 
 <?php
 $tabControl->Begin();
-$tabControl->BeginNextTab();
+//$tabControl->BeginNextTab();
 ?>
 <div style="max-width: 1000px; margin: 20px auto;">
     <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -293,6 +298,9 @@ $tabControl->BeginNextTab();
                                     </code>
                                 </div>
                             <?php endif; ?>
+                        </div>
+                        <div>
+                            <?= $importResult?>
                         </div>
                     </div>
                 <?php endif; ?>
