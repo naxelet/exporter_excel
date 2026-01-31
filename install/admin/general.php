@@ -48,9 +48,11 @@ $aTabs = [
 $iblockId = (int)trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
 $iblockSites = unserialize(Option::get($module_id, 'SELECTED_SITES', ''));
 $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/upload/'.$module_id.'/';
+$tabControl = new \CAdminTabControl('tabControl', $aTabs);
 $importResult = '';
 $errorMessage = '';
 $successMessage = '';
+$message = null;
 
 // Создаем директорию для загрузок, если не существует
 if (!is_dir($uploadDir)) {
@@ -100,7 +102,8 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                             }
                         }
                     ]);
-                    // toDo::валидация файла
+                    // ToDo::добавить в параметры формы соответсвие номера столбца и параметра
+                    // ToDo::валидация файла
 //                    $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
 //                    if (!$excel_file->validateStructure($requiredColumns)) {
 //                        throw new \RuntimeException('Неверная структура файла');
@@ -119,19 +122,23 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                     $importResult .= '</pre>';
 
                     if (!$result->isSuccess()) {
-                        $importResult .= '<h3>Ошибки:</h3>';
-                        $importResult .= '<ul>';
+                        $errorMessage .= '<h3>Ошибки:</h3>';
+                        $errorMessage .= '<ul>';
                         foreach ($result->errors as $error) {
-                            $importResult .= "<li>Строка {$error['row']}: {$error['message']}</li>";
+                            $errorMessage .= "<li>Строка {$error['row']}: {$error['message']}</li>";
                         }
-                        $importResult .= '</ul>';
+                        $errorMessage .= '</ul>';
+                    } else {
+                        $successMessage = 'Сохранено успешно';
                     }
+                    // если была нажата кнопка "Иппорта" - отправляем обратно на форму.
+                    LocalRedirect('/bitrix/admin/akatan.exporterexcel__general.php?mess=ok&lang=' . LANG . '&' . $tabControl->ActiveTabParam());
                 }  catch (\Throwable $error) {
-                    $importResult .= '<div style="color: red; padding: 20px; border: 1px solid red;">';
-                    $importResult .= '<h3>Ошибка импорта:</h3>';
-                    $importResult .= '<p>' . htmlspecialchars($error->getMessage()) . '</p>';
-                    $importResult .= '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
-                    $importResult .= '</div>';
+                    $errorMessage .= '<div style="color: red; padding: 20px; border: 1px solid red;">';
+                    $errorMessage .= '<h3>Ошибка импорта:</h3>';
+                    $errorMessage .= '<p>' . htmlspecialchars($error->getMessage()) . '</p>';
+                    $errorMessage .= '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
+                    $errorMessage .= '</div>';
 
 //                     log->error('Ошибка импорта', [
 //                            'message' => $error->getMessage(),
@@ -160,16 +167,13 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 //            $message = new CAdminMessage("Ошибка сохранения: " . $mess);
 //        }
 //    }
+    echo 'Результат импорта: ' . $importResult;
 }
 
 
 // eсли есть сообщения об успешном сохранении, выведем их
-//if ($_REQUEST["mess"] == "ok") {
-//    CAdminMessage::ShowMessage(array("MESSAGE" => "Сохранено успешно", "TYPE" => "OK"));
-//}
-//// eсли есть сообщения об не успешном сохранении, выведем их
-//if ($message) {
-//    echo $message->Show();
+//if ($_REQUEST['mess'] === 'ok') {
+//    \CAdminMessage::ShowMessage(['MESSAGE' => 'Сохранено успешно', 'TYPE' => 'OK']);
 //}
 
 // ******************************************************************** //
@@ -194,12 +198,11 @@ if ($successMessage) {
         'HTML' => true
     ]);
 }
-$tabControl = new \CAdminTabControl('tabControl', $aTabs);
 ?>
 
 <?php
 $tabControl->Begin();
-//$tabControl->BeginNextTab();
+$tabControl->BeginNextTab();
 ?>
 <div style="max-width: 1000px; margin: 20px auto;">
     <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -339,6 +342,7 @@ $tabControl->Begin();
     </div>
 </div>
 <?php
+$tabControl->EndTab();
 // завершаем интерфейс закладки
 $tabControl->End();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/epilog_admin.php';
