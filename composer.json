@@ -3,5 +3,8 @@
     "psr-4": {
       "Uploading0rders\\": "classes/general/Uploading0rders"
     }
+  },
+  "require": {
+    "phpoffice/phpspreadsheet": "^5.4"
   }
 }
