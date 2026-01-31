@@ -155,7 +155,7 @@ if ($exception = $APPLICATION->GetException()) {
             ← <?= Loc::getMessage('AKATAN_EXCEL_BACK_TO_LIST') ?>
         </a>
 
-        <a href="/bitrix/admin/AKATAN_EXCEL_settings.php?lang=<?= LANGUAGE_ID ?>"
+        <a href="/bitrix/admin/akatan.exporterexcel__general.php?lang=<?= LANGUAGE_ID ?>"
            style="display: inline-block; padding: 10px 20px; background: #0069b4; color: white; text-decoration: none; border-radius: 4px;">
             ⚙ <?= Loc::getMessage('AKATAN_EXCEL_GO_TO_SETTINGS') ?>
         </a>
