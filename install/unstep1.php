@@ -8,9 +8,6 @@ Loc::loadMessages(__FILE__);
 if (!check_bitrix_sessid()) {
     return;
 }
-
-echo '<pre>' . Option::get('akatan.exporterexcel', 'IBLOCK_ID') . '</pre>';
-echo '<pre>' . Option::get('akatan.exporterexcel', 'SELECTED_SITES') . '</pre>';
 ?>
 
 <form action="<?= $APPLICATION->GetCurPage() ?>" method="post">
