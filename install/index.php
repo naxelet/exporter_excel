@@ -376,13 +376,9 @@ class Akatan_Exporterexcel extends CModule
                     if (in_array($item, $this->exclusionAdminFiles)) {
                         continue;
                     }
-//                    file_put_contents(
-//                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin/' . $this->MODULE_ID . '__' . $item,
-/*                        '<' . '? require($_SERVER["DOCUMENT_ROOT"]."' . $this->GetPath(true) . '/install/admin/' . $item . '");?>'*/
-//                    );
                     file_put_contents(
                         $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin/' . $this->MODULE_ID . '__' . $item,
-                                  '<' . '?php require("' . realpath($this->GetPath(true) . '/install/admin/' . $item) . '");?>'
+                                  '<' . '?php require(\'' . realpath($this->GetPath(true) . '/install/admin/' . $item) . '\');?>'
                     );
                 }
                 closedir($dir);
