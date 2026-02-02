@@ -6,6 +6,7 @@ $MESS['AKATAN_EXCEL_ALLOWED_FORMATS'] = 'Поддерживаемые форма
 $MESS['AKATAN_EXCEL_IMPORT_SETTINGS'] = 'Настройки импорта:';
 $MESS['AKATAN_EXCEL_UPDATE_EXISTING'] = 'Обновлять существующие записи';
 $MESS['AKATAN_EXCEL_SKIP_ERRORS'] = 'Пропускать строки с ошибками';
+$MESS['AKATAN_EXCEL_START_ROW'] = 'Начальная строка';
 $MESS['AKATAN_EXCEL_START_IMPORT'] = 'Начать импорт';
 $MESS['AKATAN_EXCEL_BACK_TO_SETTINGS'] = 'Назад к настройкам';
 $MESS['AKATAN_EXCEL_IBLOCK_NAME'] = 'Название инфоблока';

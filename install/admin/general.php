@@ -53,6 +53,7 @@ $importResult = '';
 $errorMessage = '';
 $successMessage = '';
 $message = null;
+$start_row = '';
 
 // Создаем директорию для загрузок, если не существует
 if (!is_dir($uploadDir)) {
@@ -64,6 +65,7 @@ $APPLICATION->SetTitle('Настройка импорта');
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     $mode = ($request['update_existing'] === 'Y') ? 'update' : 'create';
     $skip_errors = ($request['skip_errors'] === 'Y');
+    $start_row = trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
     if (!empty($_FILES['xml_file']['tmp_name'])) {
         $file = $_FILES['xml_file'];
 
@@ -109,7 +111,7 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 //                        throw new \RuntimeException('Неверная структура файла');
 //                    }
                     // ToDo::добавить в параметры формы начальную строку в файле
-                    $result = $ib_processor->import($excel_file->getRows(605));
+                    $result = $ib_processor->import($excel_file->getRows($start_row));
 
                     Option::set($module_id, 'LAST_IMPORT_DATE', (new \DateTime())->format('Y-m-d H:i:s'));
                     Option::set($module_id, 'LAST_IMPORT_FILE', $inputFileName);
@@ -167,7 +169,7 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 //            $message = new CAdminMessage("Ошибка сохранения: " . $mess);
 //        }
 //    }
-    echo 'Результат импорта: ' . $importResult;
+//    echo 'Результат импорта: ' . $importResult;
 }
 
 
@@ -252,6 +254,12 @@ $tabControl->BeginNextTab();
                                 <label style="display: flex; align-items: center; gap: 5px;">
                                     <input type="checkbox" name="skip_errors" value="Y">
                                     <?= Loc::getMessage('AKATAN_EXCEL_SKIP_ERRORS') ?>
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <?= Loc::getMessage('AKATAN_EXCEL_START_ROW') . ': ' ?>
+                                    <input type="text" name="start_row" value="<?= $start_row?>">
                                 </label>
                             </div>
                         </div>
