@@ -27,6 +27,10 @@ class InfoblockBatchProcessor extends BatchProcessor
      */
     protected function processItem(array $item, int $index): void
     {
+        $existingId = null;
+        if ($this->config['mode'] !== 'create') {
+            $existingId = $this->importService->findElementIdByCode($item);
+        }
         switch ($this->config['mode']) {
             case 'create': {
                 $this->importService->createElement($item);

@@ -67,12 +67,10 @@ class ImportIblockService
         array $fields
     ): int
     {
-        static::validatePropsImport($fields);
-        $element = new \CIBlockElement();
-
         // Подготовка полей
         $preparedFields = $this->prepareElementFields($fields);
-        $preparedFields['IBLOCK_ID'] = $this->iblockId;
+        $element = new \CIBlockElement();
+        $preparedFields['IBLOCK_ID'] = $this->getIblockId();
 
         // Создание элемента
         $element_id = $element->Add($preparedFields);
@@ -96,13 +94,24 @@ class ImportIblockService
         array $fields
     ): int
     {
-        static::validatePropsImport($fields);
-        $element = new \CIBlockElement();
-        $element_id = null;
-
         // Подготовка полей
         $preparedFields = $this->prepareElementFields($fields);
-        $preparedFields['IBLOCK_ID'] = $this->iblockId;
+        $preparedFields['IBLOCK_ID'] = $this->getIblockId();
+        $element = new \CIBlockElement();
+        $existingId = $this->findElementIdByCode($preparedFields);
+
+        if ($existingId > 0) {
+            if (!$element->Update($existingId, $preparedFields)) {
+                throw new ImportException(
+                    'Ошибка при обновлении элемента.' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_UPDATE_ERROR'),
+                    ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
+                );
+            }
+            return $existingId;
+        }
+        /*
+        $element_id = null;
+        $preparedFields['IBLOCK_ID'] = $this->getIblockId();
         $arSelect = ['ID', 'NAME', 'CODE'];
         $arFilter = ['IBLOCK_ID' => IntVal($preparedFields['IBLOCK_ID']), 'CODE' => $preparedFields['CODE']];
         $res_element = \CIBlockElement::GetList([], $arFilter, false, false, $arSelect);
@@ -118,7 +127,7 @@ class ImportIblockService
                 }
                 return (int) $fields_element['ID'];
             }
-        }
+        }*/
         throw new ImportException(
             'Элемент не найден. CODE: ' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_EMPTY_UPDATE_ERROR'),
             ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
@@ -130,6 +139,7 @@ class ImportIblockService
      */
     private function prepareElementFields(array $fields): array
     {
+        static::validatePropsImport($fields);
         $defaults = [
             'CODE' => '',
         ];
@@ -158,6 +168,24 @@ class ImportIblockService
                 'delete_repeat_replace' => true
             ]
         );
+    }
+
+    public function findElementIdByCode(array $fields): int
+    {
+        $preparedFields = $this->prepareElementFields($fields);
+        $preparedFields['IBLOCK_ID'] = $this->getIblockId();
+        $arSelect = ['ID', 'NAME', 'CODE'];
+        $arFilter = ['IBLOCK_ID' => IntVal($this->getIblockId()), 'CODE' => $preparedFields['CODE']];
+        $res_element = \CIBlockElement::GetList([], $arFilter, false, false, $arSelect);
+
+        if ($res_element->SelectedRowsCount() > 0) {
+            $fields_element = $res_element->Fetch();
+            return (int)$fields_element['ID'];
+//            while($fields_element = $res_element->GetNext()) {
+//
+//            }
+        }
+        return 0;
     }
 
     /**
