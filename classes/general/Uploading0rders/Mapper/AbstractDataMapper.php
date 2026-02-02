@@ -2,7 +2,7 @@
 
 namespace Uploading0rders\Mapper;
 
-use \Uploading0rders\ImportException;
+use \Uploading0rders\Error\ImportException;
 use \Uploading0rders\Interfaces\DataMapperInterface;
 
 /**

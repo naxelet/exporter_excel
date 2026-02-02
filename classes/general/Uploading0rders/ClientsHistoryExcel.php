@@ -50,7 +50,6 @@ class ClientsHistoryExcel implements ImportExelInterface
     {
         $this->loadFile();
         $this->setActiveSheet();
-        $this->activeWorksheet->removeColumnByIndex(1); // Первый столбец пустой
         //var_dump($this->activeWorksheet);
     }
 
@@ -63,6 +62,18 @@ class ClientsHistoryExcel implements ImportExelInterface
         $this->inputFileType = IOFactory::identify($this->inputFilePath);
         $this->reader = IOFactory::createReader($this->inputFileType);
         $this->spreadsheet = $this->reader->load($this->inputFilePath);
+    }
+
+    /**
+     *  Удалите столбец
+     *
+     * @param int $columnIndex Удалить, начиная с этого индекса столбца
+     * @param int $numColumns Количество удаляемых столбцов
+     * @return void
+     */
+    public function clearColums(int $column_index, int $num_columns = 1): void
+    {
+        $this->activeWorksheet->removeColumnByIndex($column_index, $num_columns); // Первый столбец пустой
     }
 
     /**

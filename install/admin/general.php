@@ -12,6 +12,7 @@ use \Uploading0rders\Mapper\ColumnExcelMapper;
 use \Uploading0rders\Mapper\UploadingOrderMapper;
 use \Uploading0rders\Processor\InfoblockBatchProcessor;
 use \Uploading0rders\Services\ImportResult;
+use \Uploading0rders\Error\ImportException;
 
 global $APPLICATION;
 
@@ -54,6 +55,9 @@ $errorMessage = '';
 $successMessage = '';
 $message = null;
 $start_row = '';
+$clear_columns = '';
+$clear_columns_index = 1;
+$clear_columns_num = 1;
 
 // Создаем директорию для загрузок, если не существует
 if (!is_dir($uploadDir)) {
@@ -65,7 +69,10 @@ $APPLICATION->SetTitle('Настройка импорта');
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     $mode = ($request['update_existing'] === 'Y') ? 'update' : 'create';
     $skip_errors = ($request['skip_errors'] === 'Y');
-    $start_row = trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
+    $start_row = (int)trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
+    $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
+    $clear_columns_index = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_index'])));
+    $clear_columns_num = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_num'])));
     if (!empty($_FILES['xml_file']['tmp_name'])) {
         $file = $_FILES['xml_file'];
 
@@ -111,6 +118,10 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 //                        throw new \RuntimeException('Неверная структура файла');
 //                    }
                     // ToDo::добавить в параметры формы начальную строку в файле
+                    if ($clear_columns === 'Y') {
+                        $excel_file->clearColums($clear_columns_index, $clear_columns_num);
+                    }
+
                     $result = $ib_processor->import($excel_file->getRows($start_row));
 
                     Option::set($module_id, 'LAST_IMPORT_DATE', (new \DateTime())->format('Y-m-d H:i:s'));
@@ -242,10 +253,10 @@ $tabControl->BeginNextTab();
                             </div>
                         </div>
 
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-weight: bold; margin-bottom: 10px; display: block;">
+                        <div style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="font-weight: bold; margin-bottom: 10px; display: block;">
                                 <?= Loc::getMessage('AKATAN_EXCEL_IMPORT_SETTINGS') ?>
-                            </label>
+                            </div>
                             <div style="display: flex; gap: 15px; align-items: center;">
                                 <label style="display: flex; align-items: center; gap: 5px;">
                                     <input type="checkbox" name="update_existing" value="Y">
@@ -261,6 +272,23 @@ $tabControl->BeginNextTab();
                                     <?= Loc::getMessage('AKATAN_EXCEL_START_ROW') . ': ' ?>
                                     <input type="text" name="start_row" value="<?= $start_row?>">
                                 </label>
+                            </div>
+                            <div style="display: flex; gap: 15px; align-items: flex-start; flex-direction: column;">
+                                <input type="checkbox" id="checkbox"
+                                       name="clear_columns" value="Y"
+                                       class="clear-columns__checkbox"
+                                        <?= ($clear_columns === 'Y') ? 'checked' : ''?>
+                                >
+                                <label for="checkbox" class="clear-columns__btn">
+                                    <div class="clear-columns__icon"></div>
+                                    <?= Loc::getMessage('AKATAN_EXCEL_CLEAR_COLUMNS') . ': ' ?>
+                                </label>
+                                <div class="clear-columns__container">
+                                    <?= Loc::getMessage('AKATAN_EXCEL_CLEAR_COLUMNS_INDEX') . ': ' ?>
+                                    <input type="text" name="clear_columns_index" value="<?= $clear_columns_index; ?>">
+                                    <?= Loc::getMessage('AKATAN_EXCEL_CLEAR_COLUMNS_NUM') . ': ' ?>
+                                    <input type="text" name="clear_columns_num" value="<?= $clear_columns_num; ?>">
+                                </div>
                             </div>
                         </div>
                         <?php
@@ -353,5 +381,78 @@ $tabControl->BeginNextTab();
 $tabControl->EndTab();
 // завершаем интерфейс закладки
 $tabControl->End();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/epilog_admin.php';
 ?>
+<style>
+    .clear-columns__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /*width: 15px;*/
+        /*height: 15px;*/
+        cursor: pointer;
+        transition: .4s;
+        /*border: 2px solid #000;*/
+        /*border-radius: 15%;*/
+        gap: 15px;
+    }
+    .clear-columns__icon {
+        display: block;
+        position: relative;
+        background: white;
+        transition: .4s;
+        width: 15px;
+        height: 15px;
+        border: 2px solid #000;
+        border-radius: 15%;
+    }
+    .clear-columns__icon::after, .clear-columns__icon::before {
+        content: "";
+        display: none;
+        position: absolute;
+        background: #000;
+        width: 55%;
+        height: 2px;
+        transition: .4s;
+    }
+    .clear-columns__icon::after {
+        transform: rotate(-45deg);
+        top: 50%;
+        right: 0;
+    }
+    .clear-columns__icon::before {
+        transform: rotate(45deg);
+        top: 50%;
+        left: 1px;
+    }
+    .clear-columns__container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 0;
+        opacity: 1;
+        overflow: hidden;
+    }
+    .clear-columns__checkbox {
+        display: none;
+    }
+    .clear-columns__checkbox:checked ~ .clear-columns__container {
+        height: 100%;
+        transition-delay: 0s;
+    }
+    .clear-columns__checkbox:checked ~ .clear-columns__btn .clear-columns__icon {
+        display: block;
+        background: transparent;
+    }
+    .clear-columns__checkbox:checked ~ .clear-columns__btn .clear-columns__icon::before, .clear-columns__checkbox:checked ~ .clear-columns__btn .clear-columns__icon::after {
+        display: block;
+    }
+    .clear-columns__checkbox:checked ~ .clear-columns__btn .clear-columns__icon::after {
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+    }
+    .clear-columns__checkbox:checked ~ .clear-columns__btn .clear-columns__icon::before {
+        transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+    }
+</style>
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/epilog_admin.php';?>
