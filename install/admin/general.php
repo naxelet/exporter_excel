@@ -67,7 +67,7 @@ if (!is_dir($uploadDir)) {
 $APPLICATION->SetTitle('Настройка импорта');
 
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
-    $mode = ($request['update_existing'] === 'Y') ? 'update' : 'create';
+    $mode = ($request['update_existing'] === 'Y') ? 'create_or_update' : 'create';
     $skip_errors = ($request['skip_errors'] === 'Y');
     $start_row = (int)trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
     $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
@@ -127,6 +127,7 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                     Option::set($module_id, 'LAST_IMPORT_DATE', (new \DateTime())->format('Y-m-d H:i:s'));
                     Option::set($module_id, 'LAST_IMPORT_FILE', $inputFileName);
                     Option::set($module_id, 'LAST_IMPORT_COUNT', $result->getSuccessCount());
+                    Option::set($module_id, 'LAST_IMPORT_STATS', $result->getStatsString());
 
                     // Вывод результатов
                     $importResult .= '<h2>Результаты импорта</h2>';
@@ -141,9 +142,11 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                             $errorMessage .= "<li>Строка {$error['row']}: {$error['message']}</li>";
                         }
                         $errorMessage .= '</ul>';
-                    } else {
-                        $successMessage = 'Сохранено успешно';
-                    }
+                    }/* else {
+                        $successMessage .= '<div style="color: darkgreen; padding: 20px; border: 1px solid darkgreen;">';
+                        $successMessage .= $importResult;
+                        $successMessage .= '</div>';
+                    }*/
                     // если была нажата кнопка "Иппорта" - отправляем обратно на форму.
                     LocalRedirect('/bitrix/admin/akatan.exporterexcel__general.php?mess=ok&lang=' . LANG . '&' . $tabControl->ActiveTabParam());
                 }  catch (\Throwable $error) {
@@ -203,10 +206,9 @@ if ($errorMessage) {
         'HTML' => true
     ]);
 }
-
-if ($successMessage) {
+if($request['mess'] === 'ok') {
     CAdminMessage::ShowMessage([
-        'MESSAGE' => $successMessage,
+        'MESSAGE' => Loc::getMessage('AKATAN_EXCEL_IMPORT_SUCCESS'),
         'TYPE' => 'OK',
         'HTML' => true
     ]);
@@ -314,6 +316,7 @@ $tabControl->BeginNextTab();
                 $lastImportDate = Option::get($module_id, 'LAST_IMPORT_DATE');
                 $lastImportFile = Option::get($module_id, 'LAST_IMPORT_FILE');
                 $lastImportCount = Option::get($module_id, 'LAST_IMPORT_COUNT');
+                $lastImportStats = Option::get($module_id, 'LAST_IMPORT_STATS');
 
                 if ($lastImportDate): ?>
                     <div style="background: #e8f4fd; padding: 15px; border-radius: 6px; border-left: 4px solid #0069b4;">
@@ -328,6 +331,10 @@ $tabControl->BeginNextTab();
                             <div>
                                 <strong><?= Loc::getMessage('AKATAN_EXCEL_IMPORTED_ELEMENTS') ?>:</strong><br>
                                 <?= intval($lastImportCount) ?>
+                            </div>
+                            <div>
+                                <strong><?= Loc::getMessage('AKATAN_EXCEL_IMPORTED_STATS') ?>:</strong><br>
+                                <?= $lastImportStats ?>
                             </div>
                             <?php if ($lastImportFile): ?>
                                 <div style="grid-column: span 2;">

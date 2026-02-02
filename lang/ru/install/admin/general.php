@@ -24,3 +24,5 @@ $MESS['AKATAN_EXCEL_UPLOAD_ERROR'] = 'Ошибка загрузки файла';
 $MESS['AKATAN_EXCEL_FILE_MOVE_ERROR'] = 'Ошибка перемещения файла';
 $MESS['AKATAN_EXCEL_NO_FILE_SELECTED'] = 'Файл не выбран';
 $MESS['AKATAN_EXCEL_INVALID_FILE_TYPE'] = 'Неверный тип файла. Разрешены только XML, Excel и CSV файлы.';
+$MESS['AKATAN_EXCEL_IMPORT_SUCCESS'] = 'Успешно сохранено';
+$MESS['AKATAN_EXCEL_IMPORTED_STATS'] = 'Статистика';

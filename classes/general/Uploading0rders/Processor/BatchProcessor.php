@@ -19,7 +19,7 @@ abstract class BatchProcessor implements BatchProcessorInterface
     const VALID_MODES = ['create', 'update', 'create_or_update'];
     protected array $config;
     private array $batchBuffer = [];
-    private ImportResult $currentResult;
+    protected ImportResult $currentResult;
 
     /**
      * Конструктор процессора
@@ -42,7 +42,7 @@ abstract class BatchProcessor implements BatchProcessorInterface
 
     abstract protected function getDefaultConfig(): array;
 
-    abstract protected function processItem(array $item, int $index): void;
+    abstract protected function processItem(array $item, int $index): int;
 
     /**
      * @throws \Exception

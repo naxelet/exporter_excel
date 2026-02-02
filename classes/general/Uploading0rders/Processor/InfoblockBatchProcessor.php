@@ -25,13 +25,21 @@ class InfoblockBatchProcessor extends BatchProcessor
      * @throws \Exception
      * @throws \Throwable
      */
-    protected function processItem(array $item, int $index): void
+    protected function processItem(array $item, int $index): int
     {
         $existingId = null;
         if ($this->config['mode'] !== 'create') {
             $existingId = $this->importService->findElementIdByCode($item);
         }
-        switch ($this->config['mode']) {
+        if ($existingId > 0 && $this->config['mode'] !== 'create') {
+            $update_id = $this->importService->updateElement($item);
+            $this->currentResult->updated++;
+            return $update_id;
+        }
+        $created_id = $this->importService->createElement($item);
+        $this->currentResult->created++;
+        return $created_id;
+        /*switch ($this->config['mode']) {
             case 'create': {
                 $this->importService->createElement($item);
                 break;
@@ -41,9 +49,10 @@ class InfoblockBatchProcessor extends BatchProcessor
                 break;
             }
             case 'create_or_update': {
+
                 break;
             }
-        }
+        }*/
         //            if ($result['created']) {
 //                $this->currentResult->created++;
 //            } else {
