@@ -16,13 +16,14 @@ class ColumnExcelMapper extends AbstractDataMapper
     {
         return [
             ['index' => 1, 'code' => 'BY_DATE', 'type' => 'date'],
-            ['index' => 2, 'code' => 'COUNTERPARTY', 'type' => 'string'],
-            ['index' => 3, 'code' => 'ARTICLE', 'type' => 'string'],
-            ['index' => 4, 'code' => 'NOMENCLATURE', 'type' => 'string'],
-            ['index' => 5, 'code' => 'CHAR_NOMENCLATURE', 'type' => 'string'],
-            ['index' => 6, 'code' => 'MOTION_DOCUMENT', 'type' => 'string'],
-            ['index' => 7, 'code' => 'QUANTITY', 'type' => 'int'],
-            ['index' => 8, 'code' => 'AMOUNT', 'type' => 'float'],
+            ['index' => 2, 'code' => 'UF_USER_1C', 'type' => 'string'],
+            ['index' => 3, 'code' => 'COUNTERPARTY', 'type' => 'string'],
+            ['index' => 4, 'code' => 'ARTICLE', 'type' => 'string'],
+            ['index' => 5, 'code' => 'NOMENCLATURE', 'type' => 'string'],
+            ['index' => 6, 'code' => 'CHAR_NOMENCLATURE', 'type' => 'string'],
+            ['index' => 7, 'code' => 'MOTION_DOCUMENT', 'type' => 'string'],
+            ['index' => 8, 'code' => 'QUANTITY', 'type' => 'int'],
+            ['index' => 9, 'code' => 'AMOUNT', 'type' => 'float'],
         ];
     }
 

@@ -2,8 +2,9 @@
 
 namespace Uploading0rders;
 
-use Bitrix\Main\DB\TransactionException;
+use \Bitrix\Main\DB\TransactionException;
 use \Uploading0rders\Error\ImportException;
+use \Bitrix\Main\UserTable;
 
 class ImportIblockService
 {
@@ -151,6 +152,10 @@ class ImportIblockService
             $result['CODE'] = $this->generateCode($result['NAME']);
         }
 
+        if (!empty($result['PROPERTY_VALUES']['BIND_USER_1C'])) {
+            $result['PROPERTY_VALUES']['BIND_USER_1C'] = $this->findUserByExternalCode($result['PROPERTY_VALUES']['BIND_USER_1C']);
+        }
+
         return $result;
     }
 
@@ -186,6 +191,32 @@ class ImportIblockService
 //            }
         }
         return 0;
+    }
+
+    /**
+     * Поиск пользователя по коду поля
+     */
+    public function findUserByExternalCode(string $externalCode): ?int
+    {
+
+        try {
+            $user = UserTable::getRow([
+                'select' => ['ID', 'UF_USER_1C'],
+                'filter' => [
+                    '=UF_USER_1C' => $externalCode,
+                    'ACTIVE' => 'Y',
+                ],
+                'cache' => ['ttl' => 300]
+            ]);
+
+            $userId = $user ? (int)$user['ID'] : null;
+
+            return $userId;
+
+        } catch (\Throwable $error) {
+            // ("Ошибка поиска пользователя по внешнему коду {$externalCode}: " . $error->getMessage(), 'ERROR');
+            return null;
+        }
     }
 
     /**

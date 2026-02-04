@@ -270,7 +270,7 @@ class Akatan_Exporterexcel extends CModule
                 'NAME' => 'Контрагент',
                 'SORT' => 200,
                 'PROPERTY_TYPE' => 'S',
-                'IS_REQUIRED' => 'N'
+                'IS_REQUIRED' => 'Y'
             ],
             'ARTICLE' => [
                 'NAME' => 'Артикул',
@@ -306,7 +306,14 @@ class Akatan_Exporterexcel extends CModule
                 'NAME' => 'Сумма',
                 'SORT' => 800,
                 'PROPERTY_TYPE' => 'N',
-                'IS_REQUIRED' => 'N'
+                'IS_REQUIRED' => 'Y'
+            ],
+            'BIND_USER_1C' => [
+                'NAME' => 'Пользователь',
+                'SORT' => 900,
+                'PROPERTY_TYPE' => 'S',
+                'IS_REQUIRED' => 'N',
+                'USER_TYPE' => 'UserID',
             ]
         ];
 

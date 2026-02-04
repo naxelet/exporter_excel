@@ -20,6 +20,7 @@ class UploadingOrderMapper extends AbstractDataMapper
             ],
             'properties' => [
                 'BY_DATE'=> ['source' => 'BY_DATE', 'type' => 'date'],
+                'UF_USER_1C'=> ['source' => 'BIND_USER_1C', 'type' => 'string'],
                 'COUNTERPARTY' => ['source' => 'COUNTERPARTY', 'type' => 'string'],
                 'ARTICLE'=> ['source' => 'ARTICLE', 'type' => 'string'],
                 'NOMENCLATURE' => ['source' => 'NOMENCLATURE', 'type' => 'string'],
@@ -57,8 +58,8 @@ class UploadingOrderMapper extends AbstractDataMapper
         }
 
         foreach ($this->mappingSchema['properties'] as $key => $property) {
-            if (!empty($row[$property['source']])) {
-                $fields['PROPERTY_VALUES'][$property['source']] = static::normalizeValue($row[$property['source']], $property['type']);
+            if (!empty($row[$key])) {
+                $fields['PROPERTY_VALUES'][$property['source']] = static::normalizeValue($row[$key], $property['type']);
             }
         }
         return $fields;
