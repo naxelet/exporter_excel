@@ -26,6 +26,7 @@ class Akatan_Exporterexcel extends CModule
     //public string $PARTNER_URI;
     public string $IBLOCK_TYPE_ID = 'services';
     public string $IBLOCK_CODE = 'uploading_order';
+    public string $IBLOCK_API_CODE = 'uploading0rder';
     public array $exclusionAdminFiles;
 
     public function __construct()
@@ -191,6 +192,7 @@ class Akatan_Exporterexcel extends CModule
             'ACTIVE' => 'Y',
             'NAME' => Loc::getMessage('AKATAN_EXCEL_IBLOCK_NAME'),
             'CODE' => $this->IBLOCK_CODE,
+            'API_CODE' => $this->IBLOCK_API_CODE,
             'IBLOCK_TYPE_ID' => $this->IBLOCK_TYPE_ID,
             'SITE_ID' => $selectedSites,
             'SORT' => 100,
