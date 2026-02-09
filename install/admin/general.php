@@ -54,10 +54,12 @@ $importResult = '';
 $errorMessage = '';
 $successMessage = '';
 $message = null;
-$start_row = '';
-$clear_columns = '';
-$clear_columns_index = 1;
-$clear_columns_num = 1;
+
+$update_existing = Option::get($module_id, 'UPDATE_EXISTING');
+$start_row = Option::get($module_id, 'START_ROW');
+$clear_columns = Option::get($module_id, 'CLEAR_COLUMNS');
+$clear_columns_index = Option::get($module_id, 'CLEAR_COLUMNS_INDEX');
+$clear_columns_num = Option::get($module_id, 'CLEAR_COLUMNS_NUM');
 
 // Создаем директорию для загрузок, если не существует
 if (!is_dir($uploadDir)) {
@@ -73,6 +75,18 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
     $clear_columns_index = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_index'])));
     $clear_columns_num = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_num'])));
+
+    Option::set($module_id, 'START_ROW', $start_row);
+    Option::set($module_id, 'CLEAR_COLUMNS', $clear_columns);
+    Option::set($module_id, 'CLEAR_COLUMNS_INDEX', $clear_columns_index);
+    Option::set($module_id, 'CLEAR_COLUMNS_NUM', $clear_columns_num);
+
+    if ($request['update_existing'] === 'Y') {
+        Option::set($module_id, 'UPDATE_EXISTING', 'Y');
+    } else {
+        Option::set($module_id, 'UPDATE_EXISTING', '');
+    }
+
     if (!empty($_FILES['xml_file']['tmp_name'])) {
         $file = $_FILES['xml_file'];
 
@@ -104,13 +118,13 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                     $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
                     $excel_import = new ImportIblockService($iblockId);
                     $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
-                    $ib_processor->setConfig([
+                    /*$ib_processor->setConfig([
                         'progress_callback' => function(int $processed, ImportResult $result) {
                             if ($processed % 100 === 0) {
                                 echo "Прогресс: обработано {$processed} строк";
                             }
                         }
-                    ]);
+                    ]);*/
                     // ToDo::добавить в параметры формы соответсвие номера столбца и параметра
                     // ToDo::валидация файла
 //                    $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
@@ -260,8 +274,13 @@ $tabControl->BeginNextTab();
                                 <?= Loc::getMessage('AKATAN_EXCEL_IMPORT_SETTINGS') ?>
                             </div>
                             <div style="display: flex; gap: 15px; align-items: center;">
+                                <input
+                                        type="checkbox"
+                                        <?= ($update_existing === 'Y') ? 'checked' : ''?>
+                                        name="update_existing"
+                                        value="Y"
+                                >
                                 <label style="display: flex; align-items: center; gap: 5px;">
-                                    <input type="checkbox" name="update_existing" value="Y">
                                     <?= Loc::getMessage('AKATAN_EXCEL_UPDATE_EXISTING') ?>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px;">
