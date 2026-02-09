@@ -28,7 +28,10 @@ class Agent
             $mode = ($update_existing === 'Y') ? 'create_or_update' : 'create';
             $filePath = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . static::MODULE_ID . '/test.xls';
             $inputFileName =  realpath($filePath);
-            //$logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
+            $log_module_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $module_id . '/logs/';
+            $log_path = $log_module_dir . 'import_' . date('Y-m-d') . '.log';
+            $logger = new FileLogger($log_path);
+            $logger->setLevel(\Psr\Log\LogLevel::DEBUG);
             $activeSheetIndex = 0;
             $settings = [
                 'mode' => $mode,
@@ -38,7 +41,7 @@ class Agent
                 $mapper_loading = new UploadingOrderMapper();
                 $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
                 $excel_import = new ImportIblockService($iblock_id);
-                $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
+                $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $logger, $settings);
 
                 if ($clear_columns === 'Y') {
                     $excel_file->clearColums($clear_columns_index, $clear_columns_num);

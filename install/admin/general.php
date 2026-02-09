@@ -11,6 +11,7 @@ use \Uploading0rders\ImportIblockService;
 use \Uploading0rders\Mapper\ColumnExcelMapper;
 use \Uploading0rders\Mapper\UploadingOrderMapper;
 use \Uploading0rders\Processor\InfoblockBatchProcessor;
+use \Bitrix\Main\Diag\FileLogger;
 use \Uploading0rders\Services\ImportResult;
 use \Uploading0rders\Error\ImportException;
 
@@ -49,7 +50,11 @@ $aTabs = [
 $iblockId = (int)trim(htmlspecialcharsbx(Option::get($module_id, 'IBLOCK_ID', '')));
 $iblockSites = unserialize(Option::get($module_id, 'SELECTED_SITES', ''));
 $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/upload/'.$module_id.'/';
+$log_module_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $module_id . '/logs/';
+$log_path = $log_module_dir . 'import_' . date('Y-m-d') . '.log';
 $tabControl = new \CAdminTabControl('tabControl', $aTabs);
+$logger = new FileLogger($log_path);
+$logger->setLevel(\Psr\Log\LogLevel::DEBUG);
 $importResult = '';
 $errorMessage = '';
 $successMessage = '';
@@ -133,7 +138,6 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
             if (move_uploaded_file($file['tmp_name'], $filePath)) {
                 try {
                     $inputFileName =  realpath($filePath);
-                    $logPath = realpath($_SERVER['DOCUMENT_ROOT'] . '/upload/logs/import_' . date('Y-m-d') . '.log');
                     $activeSheetIndex = 0;
                     $settings = [
                         'mode' => $mode,
@@ -143,7 +147,7 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                     $mapper_loading = new UploadingOrderMapper();
                     $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
                     $excel_import = new ImportIblockService($iblockId);
-                    $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $settings);
+                    $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $logger, $settings);
                     /*$ib_processor->setConfig([
                         'progress_callback' => function(int $processed, ImportResult $result) {
                             if ($processed % 100 === 0) {

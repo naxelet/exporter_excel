@@ -32,11 +32,13 @@ class InfoblockBatchProcessor extends BatchProcessor
             $existingId = $this->importService->findElementIdByCode($item);
         }
         if ($existingId > 0 && $this->config['mode'] !== 'create') {
+            $this->logger->info('processItem::Обновление элемента с id: ' . $existingId);
             $update_id = $this->importService->updateElement($item);
             $this->currentResult->updated++;
             return $update_id;
         }
         $created_id = $this->importService->createElement($item);
+        $this->logger->info('processItem::Создание элемента с id: ' . $created_id);
         $this->currentResult->created++;
         return $created_id;
         /*switch ($this->config['mode']) {

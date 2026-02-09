@@ -9,6 +9,7 @@ use \Uploading0rders\Interfaces\BatchProcessorInterface;
 use \Uploading0rders\Interfaces\DataMapperInterface;
 use \Uploading0rders\Services\ImportResult;
 use \Uploading0rders\Error\ImportException;
+use \Psr\Log\LoggerInterface;
 
 
 /**
@@ -32,7 +33,8 @@ abstract class BatchProcessor implements BatchProcessorInterface
     public function __construct(
         protected ImportIblockService          $importService,
         protected readonly DataMapperInterface $mapper,
-        array                                  $config
+        protected LoggerInterface               $logger,
+        array                                  $config = []
     )
     {
         $this->config = array_merge($this->getDefaultConfig(), $config);
@@ -129,7 +131,7 @@ abstract class BatchProcessor implements BatchProcessorInterface
 
             // Сухой запуск (тестирование)
             if ($this->config['dry_run']) {
-//                log->debug("Dry run: строка {$index} обработана", $mappedData);
+                $this->logger->debug("Dry run: строка {$index} обработана", $mappedProps);
                 $this->currentResult->validated++;
                 return;
             }
@@ -164,7 +166,7 @@ abstract class BatchProcessor implements BatchProcessorInterface
         $application = Application::getInstance();
         $connection = $application->getConnection();
 
-//        log->debug("Обработка пачки из " . count($this->batchBuffer) . " элементов");
+        $this->logger->debug("Обработка пачки из " . count($this->batchBuffer) . " элементов");
         try {
             // Транзакция для целостности данных
             $connection->startTransaction();
@@ -199,10 +201,10 @@ abstract class BatchProcessor implements BatchProcessorInterface
     {
         $this->currentResult->failed++;
 
-        /*log->critical("Критическая ошибка импорта: " . $e->getMessage(), [
-            'exception' => $e,
-            'trace' => $e->getTraceAsString(),
-        ]);*/
+        $this->logger->critical("Критическая ошибка импорта: " . $error->getMessage(), [
+            'exception' => $error,
+            'trace' => $error->getTraceAsString(),
+        ]);
 
         throw $error;
     }
@@ -215,9 +217,9 @@ abstract class BatchProcessor implements BatchProcessorInterface
         $this->currentResult->addError($index, $exception);
         $this->currentResult->failed++;
 
-        /*log->error("Ошибка в строке {$index}: " . $exception->getMessage(), [
+        $this->logger->error("Ошибка в строке {$index}: " . $exception->getMessage(), [
             'context' => $exception->getContext(),
-        ]);*/
+        ]);
 
         // Прерывание при ошибках если настроено
         if (!$this->config['skip_errors']) {
@@ -236,13 +238,14 @@ abstract class BatchProcessor implements BatchProcessorInterface
         $this->currentResult->memoryPeak =
             memory_get_peak_usage(true) - $this->currentResult->memoryStart;
 
-        // log->info('Импорт завершен', $this->currentResult->toArray());
+         $this->logger->info('Импорт завершен', $this->currentResult->toArray());
 
         // Вывод статистики
         if ($this->importService->debugMode) {
             $this->printStatistics();
         }
     }
+
     /**
      * Вывод статистики
      */
