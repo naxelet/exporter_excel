@@ -247,6 +247,8 @@ class Akatan_Exporterexcel extends CModule
             Option::set($this->MODULE_ID, 'IBLOCK_ID', $iblockId);
         }
 
+        \CAgent::AddAgent( '\Uploading0rders\Services\Agent::deleteModuleLoadingFiles();', $this->MODULE_ID, 'N', 60 );
+
         return true;
     }
 
@@ -360,6 +362,8 @@ class Akatan_Exporterexcel extends CModule
 
         // Удаляем настройки модуля
         Option::delete($this->MODULE_ID);
+
+        \CAgent::RemoveModuleAgents($this->MODULE_ID);
 
         return true;
     }
