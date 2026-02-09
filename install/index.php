@@ -372,6 +372,7 @@ class Akatan_Exporterexcel extends CModule
     public function InstallFiles(array $arParams = []): bool
     {
         $path_admin = $this->GetPath() . '/install/admin';
+        $path_component = $this->GetPath() . '/install/components';
         $path_upload = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $this->MODULE_ID . '/';
 
         if (Directory::isDirectoryExists($path_admin)) {
@@ -394,6 +395,17 @@ class Akatan_Exporterexcel extends CModule
             }
         } else {
             throw new \Bitrix\Main\IO\InvalidPathException($path_admin);
+        }
+
+        if (Directory::isDirectoryExists($path_component)) {
+            CopyDirFiles(
+                $path_component,
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components',
+                true,
+                true
+            );
+        } else {
+            throw new \Bitrix\Main\IO\InvalidPathException($path_component);
         }
 
         // Создаем папку для загрузок
@@ -426,7 +438,17 @@ class Akatan_Exporterexcel extends CModule
                 }
                 closedir($dir);
             }
+            unset($path);
         }
+
+        if (Directory::isDirectoryExists($path = $this->GetPath() . '/install/components')) {
+            Directory::deleteDirectory(
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components/akatan/list.element-bind/'
+            );
+            unset($path);
+        }
+
+
 
         // Удаляем папку модуля в upload с загруженными файлами
         if (is_dir($path_upload)) {
