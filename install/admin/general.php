@@ -68,6 +68,32 @@ if (!is_dir($uploadDir)) {
 
 $APPLICATION->SetTitle('Настройка импорта');
 
+if ($request->isPost() && isset($request['apply']) && check_bitrix_sessid()) {
+    $start_row = (int)trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
+    $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
+    $clear_columns_index = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_index'])));
+    $clear_columns_num = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_num'])));
+
+    Option::set($module_id, 'START_ROW', $start_row);
+    Option::set($module_id, 'CLEAR_COLUMNS', $clear_columns);
+    Option::set($module_id, 'CLEAR_COLUMNS_INDEX', $clear_columns_index);
+    Option::set($module_id, 'CLEAR_COLUMNS_NUM', $clear_columns_num);
+
+    if ($request['update_existing'] === 'Y') {
+        Option::set($module_id, 'UPDATE_EXISTING', 'Y');
+    } else {
+        Option::set($module_id, 'UPDATE_EXISTING', '');
+    }
+    unset(
+        $skip_errors,
+        $start_row,
+        $clear_columns,
+        $clear_columns_index,
+        $clear_columns_num
+    );
+    LocalRedirect('/bitrix/admin/akatan.exporterexcel__general.php?mess=ok&lang=' . LANG . '&' . $tabControl->ActiveTabParam());
+}
+
 if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     $mode = ($request['update_existing'] === 'Y') ? 'create_or_update' : 'create';
     $skip_errors = ($request['skip_errors'] === 'Y');
@@ -320,6 +346,11 @@ $tabControl->BeginNextTab();
                             <button type="submit" name="import" value="Y"
                                     style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
                                 🚀 <?= Loc::getMessage('AKATAN_EXCEL_START_IMPORT') ?>
+                            </button>
+
+                            <button type="submit" name="apply" value="Y"
+                                    style="padding: 10px 20px; background: #878383; color: #fffefe; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                                <?= Loc::getMessage('AKATAN_EXCEL_APPLY_SETTINGS') ?>
                             </button>
 
                             <a href="/bitrix/admin/akatan_excel_settings.php?lang=<?= LANGUAGE_ID ?>"
