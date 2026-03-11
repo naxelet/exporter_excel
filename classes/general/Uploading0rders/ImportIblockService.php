@@ -148,7 +148,7 @@ class ImportIblockService
         $result = array_merge($defaults, $fields);
 
         // Генерация символьного кода
-        if (empty($result['CODE']) && !empty($result['NAME'])) {
+        if (empty($result['CODE'])) {
             $result['CODE'] = $this->generateCode($result['NAME']);
         }
 

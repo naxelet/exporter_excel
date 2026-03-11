@@ -54,7 +54,8 @@ class UploadingOrderMapper extends AbstractDataMapper
         if (!isset($row['NAME'])) {
             $fields['NAME'] = static::normalizeValue($row['BY_DATE']) .
                 '_' . static::normalizeValue($row['COUNTERPARTY']) .
-                '_' . static::normalizeValue($row['AMOUNT']);
+                '_' . static::normalizeValue($row['AMOUNT']) .
+                '_' . static::normalizeValue($row['CHAR_NOMENCLATURE']);
         }
 
         foreach ($this->mappingSchema['properties'] as $key => $property) {
