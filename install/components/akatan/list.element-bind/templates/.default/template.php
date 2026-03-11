@@ -30,9 +30,6 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
             <th>
                 Сумма
             </th>
-            <th>
-                Организация
-            </th>
         </tr>
     </thead>
     <tbody>
@@ -61,9 +58,6 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
             </td>
             <td>
                 <b><?= $order['AMOUNT_VALUE']?></b>
-            </td>
-            <td>
-                <b><?= $order['BIND_USER_1C']['WORK_COMPANY']?></b>
             </td>
         </tr>
     <?php endforeach; ?>
