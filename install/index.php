@@ -160,6 +160,8 @@ class Akatan_Exporterexcel extends CModule
             $selectedSites = array_keys($sites);
         }
 
+        $this->createUserFields();
+
         // Создаем тип инфоблока, если не существует
         $iblockType = new \CIBlockType;
 
@@ -263,6 +265,11 @@ class Akatan_Exporterexcel extends CModule
         if ($iblockId <= 0) {
             return;
         }
+
+        $properties = null;
+        $propertyFields = null;
+        $iblockProperty = null;
+
         $properties = [
             'BY_DATE' => [
                 'NAME' => 'Дата',
@@ -341,6 +348,108 @@ class Akatan_Exporterexcel extends CModule
             $iblockProperty = new \CIBlockProperty;
             $iblockProperty->Add($propertyFields);
         }
+
+        unset(
+            $properties,
+            $propertyFields,
+            $iblockProperty
+        );
+
+    }
+
+    private function createUserFields(): void
+    {
+        $user_field_name = 'UF_USER_1C';
+        $userTypeEntity = new \CUserTypeEntity();
+        $ufProperty = null;
+        $userFieldId = null;
+
+        // добавить пользовательское свойство для объекта  User
+        $ufProperty = \Bitrix\Main\UserFieldTable::getList([
+            'select' => ['ID', 'FIELD_NAME'],
+            'filter' => ['FIELD_NAME' => $user_field_name],
+        ])->fetchAll();
+
+
+        if (empty($ufProperty)) {
+            $userFieldId = $userTypeEntity->Add([
+                'FIELD_NAME' => $user_field_name,
+                'XML_ID' => $user_field_name,
+                'ENTITY_ID' => 'USER',
+                'USER_TYPE_ID' => 'string',
+                /* Подпись в форме редактирования */
+                'EDIT_FORM_LABEL' => [
+                    'ru' => 'Связка с 1С',
+                    'en' => 'Связка с 1С',
+                ],
+                /* Заголовок в списке */
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => 'Связка с 1С',
+                    'en' => 'Связка с 1С',
+                ],
+                /* Подпись фильтра в списке */
+                'LIST_FILTER_LABEL' => [
+                    'ru' => 'Связка с 1С',
+                    'en' => 'Связка с 1С',
+                ],
+                /* Помощь */
+                'HELP_MESSAGE' => [
+                    'ru' => 'Связка с 1С',
+                    'en' => 'Связка с 1С',
+                ]
+            ]);
+        }
+
+        \Bitrix\Main\Diag\Debug::dumpToFile(
+            [
+                'user_field_name'=>$user_field_name,
+                'userTypeEntity'=>$userTypeEntity,
+                'ufProperty'=>$ufProperty,
+                'userFieldId'=>$userFieldId,
+            ],
+            "",
+            "/dev/log.log"
+        );
+
+        unset(
+            $user_field_name,
+            $ufProperty,
+            $userFieldId,
+            $userTypeEntity
+        );
+    }
+
+    private function deleteUserFields(): void
+    {
+        $user_field_name = 'UF_USER_1C';
+        $userTypeEntity = new \CUserTypeEntity();
+        $ufProperty = null;
+
+        $ufProperty = \Bitrix\Main\UserFieldTable::getList([
+            'select' => ['ID', 'FIELD_NAME'],
+            'filter' => ['FIELD_NAME' => $user_field_name],
+        ])->fetchAll();
+
+        \Bitrix\Main\Diag\Debug::dumpToFile(
+            [
+                'user_field_name'=>$user_field_name,
+                'userTypeEntity'=>$userTypeEntity,
+                'ufProperty'=>$ufProperty,
+            ],
+            "",
+            "/dev/log.log"
+        );
+
+        // удалить пользовательское свойство для объекта  User
+        if (!empty($ufProperty)) {
+            $userTypeEntity->Delete($ufProperty[0]['ID']);
+        }
+
+        unset(
+            $user_field_name,
+            $ufProperty,
+            $userTypeEntity
+        );
     }
 
     /**
@@ -353,12 +462,16 @@ class Akatan_Exporterexcel extends CModule
         Loader::includeModule('iblock');
 
         $iblockId = Option::get($this->MODULE_ID, 'IBLOCK_ID');
-        if ($iblockId && !$arParams['savedata']) {
-            // Удаляем инфоблок со всеми данными
-            \CIBlock::Delete($iblockId);
+        if (!$arParams['savedata']) {
+            if ($iblockId) {
+                // Удаляем инфоблок со всеми данными
+                \CIBlock::Delete($iblockId);
 
-            // Удаляем тип инфоблока
-            \CIBlockType::Delete($this->IBLOCK_TYPE_ID);
+                // Удаляем тип инфоблока
+                \CIBlockType::Delete($this->IBLOCK_TYPE_ID);
+            }
+
+            $this->deleteUserFields();
         }
 
         // Удаляем настройки модуля
