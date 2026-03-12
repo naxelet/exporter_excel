@@ -400,17 +400,6 @@ class Akatan_Exporterexcel extends CModule
             ]);
         }
 
-        \Bitrix\Main\Diag\Debug::dumpToFile(
-            [
-                'user_field_name'=>$user_field_name,
-                'userTypeEntity'=>$userTypeEntity,
-                'ufProperty'=>$ufProperty,
-                'userFieldId'=>$userFieldId,
-            ],
-            "",
-            "/dev/log.log"
-        );
-
         unset(
             $user_field_name,
             $ufProperty,
@@ -429,16 +418,6 @@ class Akatan_Exporterexcel extends CModule
             'select' => ['ID', 'FIELD_NAME'],
             'filter' => ['FIELD_NAME' => $user_field_name],
         ])->fetchAll();
-
-        \Bitrix\Main\Diag\Debug::dumpToFile(
-            [
-                'user_field_name'=>$user_field_name,
-                'userTypeEntity'=>$userTypeEntity,
-                'ufProperty'=>$ufProperty,
-            ],
-            "",
-            "/dev/log.log"
-        );
 
         // удалить пользовательское свойство для объекта  User
         if (!empty($ufProperty)) {
