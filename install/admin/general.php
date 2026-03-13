@@ -66,6 +66,10 @@ $clear_columns = Option::get($module_id, 'CLEAR_COLUMNS');
 $clear_columns_index = Option::get($module_id, 'CLEAR_COLUMNS_INDEX');
 $clear_columns_num = Option::get($module_id, 'CLEAR_COLUMNS_NUM');
 
+$file = null;
+$file_path = $module_id;
+$allowedExtensions = ['xml', 'xlsx', 'xls', 'csv'];
+
 // Создаем директорию для загрузок, если не существует
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
@@ -120,10 +124,10 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
 
     if (!empty($_FILES['xml_file']['tmp_name'])) {
         $file = $_FILES['xml_file'];
+        $file['MODULE_ID'] = $module_id;
 
         // Проверяем расширение файла
         $fileInfo = pathinfo($file['name']);
-        $allowedExtensions = ['xml', 'xlsx', 'xls', 'csv'];
 
         if (!in_array(strtolower($fileInfo['extension']), $allowedExtensions)) {
             $errorMessage = Loc::getMessage('AKATAN_EXCEL_INVALID_FILE_TYPE');
@@ -131,13 +135,17 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
             $errorMessage = Loc::getMessage('AKATAN_EXCEL_UPLOAD_ERROR') . ': ' . $file['error'];
         } else {
             // Генерируем уникальное имя файла
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\._\-]/', '', $file['name']);
-            $filePath = $uploadDir . $fileName;
+            //$fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\._\-]/', '', $file['name']);
+            //$file_path .= $fileName;
+            //$filePath = $uploadDir . $fileName;
 
             // Перемещаем загруженный файл
-            if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            $fileId = \CFile::SaveFile($file, $file_path);
+
+            if ($fileId > 0) {
+                // success
                 try {
-                    $inputFileName =  realpath($filePath);
+                    $inputFileName = $_SERVER['DOCUMENT_ROOT'] . \CFile::GetPath($fileId); //realpath($filePath);
                     $activeSheetIndex = 0;
                     $settings = [
                         'mode' => $mode,
@@ -156,12 +164,10 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                         }
                     ]);*/
                     // ToDo::добавить в параметры формы соответсвие номера столбца и параметра
-                    // ToDo::валидация файла
 //                    $requiredColumns = ['NAME', 'ARTICLE', 'PRICE'];
 //                    if (!$excel_file->validateStructure($requiredColumns)) {
 //                        throw new \RuntimeException('Неверная структура файла');
 //                    }
-                    // ToDo::добавить в параметры формы начальную строку в файле
                     if ($clear_columns === 'Y') {
                         $excel_file->clearColums($clear_columns_index, $clear_columns_num);
                     }
@@ -200,34 +206,22 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
                     $errorMessage .= '<pre>' . htmlspecialchars($error->getTraceAsString()) . '</pre>';
                     $errorMessage .= '</div>';
 
-//                     log->error('Ошибка импорта', [
-//                            'message' => $error->getMessage(),
-//                            'trace' => $error->getTraceAsString(),
-//                        ]);}
+                     $logger->error('Ошибка импорта', [
+                            'message' => $error->getMessage(),
+                            'trace' => $error->getTraceAsString(),
+                    ]);
+
 
                 }
             } else {
+                // error
                 $errorMessage = Loc::getMessage('AKATAN_EXCEL_FILE_MOVE_ERROR');
             }
         }
     } else {
         $errorMessage = Loc::getMessage('AKATAN_EXCEL_NO_FILE_SELECTED');
     }
-// если обновление прошло успешно
-//    if ($res->isSuccess()) {
-// перенаправим на новую страницу, в целях защиты от повторной отправки формы нажатием кнопки Обновить в браузере
-//    }
-// если обновление прошло не успешно
-//    if (!$res->isSuccess()) {
-// если в процессе сохранения возникли ошибки - получаем текст ошибки
-//        if ($e = $APPLICATION->GetException())
-//            $message = new CAdminMessage("Ошибка сохранения: ", $e);
-//        else {
-//            $mess = print_r($res->getErrorMessages(), true);
-//            $message = new CAdminMessage("Ошибка сохранения: " . $mess);
-//        }
-//    }
-//    echo 'Результат импорта: ' . $importResult;
+
 }
 
 
