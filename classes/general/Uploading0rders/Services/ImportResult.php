@@ -87,7 +87,7 @@ class ImportResult
         return [
             'execution_time' => $this->executionTime,
             'total_processed' => $this->totalProcessed,
-            'success_rows' => $this->successRows,
+            'success_rows' => $this->getSuccessCount(),
             'created' => $this->created,
             'updated' => $this->updated,
             'failed' => $this->failed,
@@ -108,7 +108,7 @@ class ImportResult
         return sprintf(
             "Всего: %d, Успешно: %d (Создано: %d, Обновлено: %d), Ошибок: %d, Время: %.2f сек",
             $this->totalProcessed,
-            $this->successRows,
+            $this->getSuccessCount(),
             $this->created,
             $this->updated,
             $this->failed,
