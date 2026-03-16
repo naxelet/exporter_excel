@@ -9,6 +9,7 @@ use \Uploading0rders\ImportIblockService;
 use \Uploading0rders\Mapper\ColumnExcelMapper;
 use \Uploading0rders\Mapper\UploadingOrderMapper;
 use \Uploading0rders\Processor\InfoblockBatchProcessor;
+use \Bitrix\Main\Diag\FileLogger;
 
 
 class Agent
@@ -26,9 +27,10 @@ class Agent
             $clear_columns_num = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_NUM');
             $allowedExtensions = ['xml', 'xlsx', 'xls', 'csv'];
             $mode = ($update_existing === 'Y') ? 'create_or_update' : 'create';
-            $filePath = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . static::MODULE_ID . '/test.xls';
+            $filePath = Option::get(static::MODULE_ID, 'FILL_PATH');
             $inputFileName =  realpath($filePath);
-            $log_module_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $module_id . '/logs/';
+            $fileInfo = pathinfo($inputFileName);
+            $log_module_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . static::MODULE_ID . '/logs/';
             $log_path = $log_module_dir . 'import_' . date('Y-m-d') . '.log';
             $logger = new FileLogger($log_path);
             $logger->setLevel(\Psr\Log\LogLevel::DEBUG);
@@ -36,7 +38,14 @@ class Agent
             $settings = [
                 'mode' => $mode,
             ];
-            if (file_exists($inputFileName)) {
+
+
+            $logger->debug('ImportAgentStart: ', [
+                'filePath' => $filePath,
+                'inputFileName' => $inputFileName,
+                'fileInfo' => $fileInfo,
+            ]);
+            if (file_exists($inputFileName) && in_array(strtolower($fileInfo['extension']), $allowedExtensions)) {
                 $mapper_xml = new ColumnExcelMapper();
                 $mapper_loading = new UploadingOrderMapper();
                 $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
@@ -57,7 +66,9 @@ class Agent
                 if (!$result->isSuccess()) {}
             }
         } catch (\Exception $exception) {
-
+            $logger->logger->error("Ошибка: " . $exception->getMessage(), [
+                'context' => $exception->getContext(),
+            ]);
         } finally {
             return '\Uploading0rders\Services\Agent::runImportFile();';
         }
@@ -92,9 +103,10 @@ class Agent
     private static function removeAllDir(string $dir, bool $is_nested = false): void
     {
         $includes = new \FilesystemIterator($dir);
+        $exclude_dir = ['logs'];
 
         foreach ($includes as $include) {
-            if (is_dir($include) && !is_link($include)) {
+            if (is_dir($include) && !is_link($include) && !in_array(basename($include), $exclude_dir)) {
                 static::removeAllDir($include, true);
             } else {
                 unlink($include);

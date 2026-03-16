@@ -12,6 +12,7 @@ use \Uploading0rders\Mapper\ColumnExcelMapper;
 use \Uploading0rders\Mapper\UploadingOrderMapper;
 use \Uploading0rders\Processor\InfoblockBatchProcessor;
 use \Bitrix\Main\Diag\FileLogger;
+use \Bitrix\Main\IO\Path;
 use \Uploading0rders\Services\ImportResult;
 use \Uploading0rders\Error\ImportException;
 
@@ -65,6 +66,7 @@ $start_row = Option::get($module_id, 'START_ROW');
 $clear_columns = Option::get($module_id, 'CLEAR_COLUMNS');
 $clear_columns_index = Option::get($module_id, 'CLEAR_COLUMNS_INDEX');
 $clear_columns_num = Option::get($module_id, 'CLEAR_COLUMNS_NUM');
+$fill_path_full = Option::get($module_id, 'FILL_PATH');
 
 $file = null;
 $file_path = $module_id;
@@ -80,6 +82,7 @@ $APPLICATION->SetTitle('Настройка импорта');
 if ($request->isPost() && isset($request['apply']) && check_bitrix_sessid()) {
     $start_row = (int)trim(htmlspecialcharsbx(strip_tags($request['start_row'])));
     $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
+    $fill_path = Path::convertRelativeToAbsolute(trim(htmlspecialcharsbx(strip_tags($request['fill_path']))));
     $clear_columns_index = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_index'])));
     $clear_columns_num = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_num'])));
 
@@ -87,6 +90,7 @@ if ($request->isPost() && isset($request['apply']) && check_bitrix_sessid()) {
     Option::set($module_id, 'CLEAR_COLUMNS', $clear_columns);
     Option::set($module_id, 'CLEAR_COLUMNS_INDEX', $clear_columns_index);
     Option::set($module_id, 'CLEAR_COLUMNS_NUM', $clear_columns_num);
+    Option::set($module_id, 'FILL_PATH', $fill_path);
 
     if ($request['update_existing'] === 'Y') {
         Option::set($module_id, 'UPDATE_EXISTING', 'Y');
@@ -98,6 +102,7 @@ if ($request->isPost() && isset($request['apply']) && check_bitrix_sessid()) {
         $start_row,
         $clear_columns,
         $clear_columns_index,
+        $fill_path,
         $clear_columns_num
     );
     LocalRedirect('/bitrix/admin/akatan.exporterexcel__general.php?mess=ok&lang=' . LANG . '&' . $tabControl->ActiveTabParam());
@@ -110,11 +115,13 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     $clear_columns = trim(htmlspecialcharsbx(strip_tags($request['clear_columns'])));
     $clear_columns_index = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_index'])));
     $clear_columns_num = (int)trim(htmlspecialcharsbx(strip_tags($request['clear_columns_num'])));
+    $fill_path = Path::convertRelativeToAbsolutePath(trim(htmlspecialcharsbx(strip_tags($request['fill_path']))));
 
     Option::set($module_id, 'START_ROW', $start_row);
     Option::set($module_id, 'CLEAR_COLUMNS', $clear_columns);
     Option::set($module_id, 'CLEAR_COLUMNS_INDEX', $clear_columns_index);
     Option::set($module_id, 'CLEAR_COLUMNS_NUM', $clear_columns_num);
+    Option::set($module_id, 'FILL_PATH', $fill_path);
 
     if ($request['update_existing'] === 'Y') {
         Option::set($module_id, 'UPDATE_EXISTING', 'Y');
@@ -221,7 +228,15 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     } else {
         $errorMessage = Loc::getMessage('AKATAN_EXCEL_NO_FILE_SELECTED');
     }
-
+    unset(
+        $mode,
+        $skip_errors,
+        $start_row,
+        $clear_columns,
+        $clear_columns_index,
+        $clear_columns_num,
+        $fill_path
+    );
 }
 
 
@@ -291,6 +306,14 @@ $tabControl->BeginNextTab();
                             <div style="margin-top: 5px; font-size: 12px; color: #6c757d;">
                                 <?= Loc::getMessage('AKATAN_EXCEL_ALLOWED_FORMATS') ?>
                             </div>
+                        </div>
+
+
+                        <div style="display: flex; gap: 15px; align-items: center;margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <?= Loc::getMessage('AKATAN_EXCEL_FILL_PATH') . ': ' ?>
+                                <input type="text" name="fill_path" value="<?= str_replace($_SERVER['DOCUMENT_ROOT'], '', Option::get($module_id, 'FILL_PATH'));?>">
+                            </label>
                         </div>
 
                         <div style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px;">
@@ -395,6 +418,10 @@ $tabControl->BeginNextTab();
                         </div>
                         <div>
                             <?= $importResult?>
+                        </div>
+                        <div>
+                            <strong><?= Loc::getMessage('AKATAN_EXCEL_FILL_PATH') ?>:</strong><br>
+                            <?= $fill_path_full?>
                         </div>
                     </div>
                 <?php endif; ?>
