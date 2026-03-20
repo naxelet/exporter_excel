@@ -8,6 +8,7 @@ use \PhpOffice\PhpSpreadsheet\IOFactory;
 use \PhpOffice\PhpSpreadsheet\Reader\IReader;
 use \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use \PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use \Uploading0rders\Interfaces\DataMapperInterface;
 use \Uploading0rders\Interfaces\ImportExelInterface;
 use \Uploading0rders\Mapper\ColumnExcelMapper;
 
@@ -28,7 +29,7 @@ class ClientsHistoryExcel implements ImportExelInterface
     public function __construct(
         private readonly string                     $inputFilePath,
         private int                                 $activeSheetIndex = 0,
-        private readonly ?ColumnExcelMapper $columnMapping = null
+        private readonly ?DataMapperInterface $columnMapping = null
     )
     {
         if (!file_exists($this->inputFilePath)) {

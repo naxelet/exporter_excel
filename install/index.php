@@ -16,14 +16,6 @@ Loc::loadMessages(__FILE__);
 
 class Akatan_Exporterexcel extends CModule
 {
-    //public string $MODULE_ID = 'akatan.exporterexcel';
-    //public string $MODULE_VERSION;
-    //public string $MODULE_VERSION_DATE;
-    //public string $MODULE_NAME;
-    //public string $MODULE_DESCRIPTION;
-    //public string $MODULE_GROUP_RIGHTS;
-    //public string $PARTNER_NAME;
-    //public string $PARTNER_URI;
     public string $IBLOCK_TYPE_ID = 'services';
     public string $IBLOCK_CODE = 'uploading_order';
     public string $IBLOCK_API_CODE = 'uploading0rder';
@@ -249,7 +241,8 @@ class Akatan_Exporterexcel extends CModule
             Option::set($this->MODULE_ID, 'IBLOCK_ID', $iblockId);
         }
 
-        \CAgent::AddAgent( '\Uploading0rders\Services\Agent::runImportFile();', $this->MODULE_ID, 'N', 60 );
+        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadSale::runImportFile();', $this->MODULE_ID, 'N', 60 );
+        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadAnalysis::runImportFile();', $this->MODULE_ID, 'N', 60 );
         \CAgent::AddAgent( '\Uploading0rders\Services\Agent::deleteModuleLoadingFiles();', $this->MODULE_ID, 'N', 86400 );
 
         return true;
@@ -276,7 +269,7 @@ class Akatan_Exporterexcel extends CModule
                 'SORT' => 100,
                 'PROPERTY_TYPE' => 'S',
                 'USER_TYPE' => 'DateTime',
-                'IS_REQUIRED' => 'Y'
+                'IS_REQUIRED' => 'N'
             ],
             'COUNTERPARTY' => [
                 'NAME' => 'Контрагент',

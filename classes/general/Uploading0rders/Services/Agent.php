@@ -16,64 +16,6 @@ class Agent
 {
     const MODULE_ID = 'akatan.exporterexcel';
 
-    public static function runImportFile(): string
-    {
-        try {
-            $iblock_id = (int)trim(htmlspecialcharsbx(Option::get(static::MODULE_ID, 'IBLOCK_ID', '')));
-            $update_existing = Option::get(static::MODULE_ID, 'UPDATE_EXISTING');
-            $start_row = Option::get(static::MODULE_ID, 'START_ROW');
-            $clear_columns = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS');
-            $clear_columns_index = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_INDEX');
-            $clear_columns_num = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_NUM');
-            $allowedExtensions = ['xml', 'xlsx', 'xls', 'csv'];
-            $mode = ($update_existing === 'Y') ? 'create_or_update' : 'create';
-            $filePath = Option::get(static::MODULE_ID, 'FILL_PATH');
-            $inputFileName =  realpath($filePath);
-            $fileInfo = pathinfo($inputFileName);
-            $log_module_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . static::MODULE_ID . '/logs/';
-            $log_path = $log_module_dir . 'import_' . date('Y-m-d') . '.log';
-            $logger = new FileLogger($log_path);
-            $logger->setLevel(\Psr\Log\LogLevel::DEBUG);
-            $activeSheetIndex = 0;
-            $settings = [
-                'mode' => $mode,
-            ];
-
-
-            $logger->debug('ImportAgentStart: ', [
-                'filePath' => $filePath,
-                'inputFileName' => $inputFileName,
-                'fileInfo' => $fileInfo,
-            ]);
-            if (file_exists($inputFileName) && in_array(strtolower($fileInfo['extension']), $allowedExtensions)) {
-                $mapper_xml = new ColumnExcelMapper();
-                $mapper_loading = new UploadingOrderMapper();
-                $excel_file = new ClientsHistoryExcel($inputFileName, $activeSheetIndex, $mapper_xml);
-                $excel_import = new ImportIblockService($iblock_id);
-                $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $logger, $settings);
-
-                if ($clear_columns === 'Y') {
-                    $excel_file->clearColums($clear_columns_index, $clear_columns_num);
-                }
-
-                $result = $ib_processor->import($excel_file->getRows($start_row));
-
-                Option::set(static::MODULE_ID, 'LAST_IMPORT_DATE', (new \DateTime())->format('Y-m-d H:i:s'));
-                Option::set(static::MODULE_ID, 'LAST_IMPORT_FILE', $inputFileName);
-                Option::set(static::MODULE_ID, 'LAST_IMPORT_COUNT', $result->getSuccessCount());
-                Option::set(static::MODULE_ID, 'LAST_IMPORT_STATS', $result->getStatsString());
-
-                if (!$result->isSuccess()) {}
-            }
-        } catch (\Exception $exception) {
-            $logger->logger->error("Ошибка: " . $exception->getMessage(), [
-                'context' => $exception->getContext(),
-            ]);
-        } finally {
-            return '\Uploading0rders\Services\Agent::runImportFile();';
-        }
-    }
-
     public static function deleteModuleLoadingFiles(): string
     {
         static::deleteModuleCornerLoadingFiles();

@@ -37,3 +37,7 @@ $ib_processor->import($excel_file->getRows(605));
 ```
 $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/upload/' . $module_id . '/';
 ```
+
+ToDo::ломается путь при установке в файле /bitrix/admin/akatan.exporterexcel__general.php
+ToDo::описание настройки импорта /bitrix/admin/akatan.exporterexcel__general.php
+ToDo::описание двум агентам \Uploading0rders\Services\Agent::deleteModuleLoadingFiles(); и \Uploading0rders\Services\Agent::runImportFile();

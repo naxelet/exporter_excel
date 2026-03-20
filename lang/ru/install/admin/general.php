@@ -1,6 +1,7 @@
 <?php
 $MESS['AKATAN_EXCEL_IMPORT_TITLE'] = 'Импорт данных из XML файла';
-$MESS['AKATAN_EXCEL_FILL_PATH'] = 'Путь к файлу импорта';
+$MESS['AKATAN_EXCEL_FILL_PATH_SALE'] = 'Путь к файлу импорта';
+$MESS['AKATAN_EXCEL_FILL_PATH_ANALYSIS'] = 'Путь к файлу импорта аналитики';
 $MESS['AKATAN_EXCEL_UPLOAD_FILE'] = 'Загрузка файла';
 $MESS['AKATAN_EXCEL_SELECT_FILE'] = 'Выберите файл для импорта:';
 $MESS['AKATAN_EXCEL_ALLOWED_FORMATS'] = 'Поддерживаемые форматы: XML, Excel (XLSX, XLS), CSV';
