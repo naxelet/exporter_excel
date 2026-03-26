@@ -20,6 +20,7 @@ class AgentUploadAnalysis extends AgentUpload
         try {
             $iblock_id = (int)trim(htmlspecialcharsbx(Option::get(static::MODULE_ID, 'IBLOCK_ID', '')));
             $update_existing = Option::get(static::MODULE_ID, 'UPDATE_EXISTING_ANALYSIS');
+            $skip_errors_analysis = Option::get(static::MODULE_ID, 'SKIP_ERRORS_ANALYSIS');
             $start_row = Option::get(static::MODULE_ID, 'START_ROW_ANALYSIS');
             $clear_columns = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_ANALYSIS');
             $clear_columns_index = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_INDEX_ANALYSIS');
@@ -36,6 +37,7 @@ class AgentUploadAnalysis extends AgentUpload
             $logger->setLevel(\Psr\Log\LogLevel::DEBUG);
             $settings = [
                 'mode' => $mode,
+                'skip_errors' => ($skip_errors_analysis === 'Y'),
             ];
 
 
@@ -83,18 +85,6 @@ class AgentUploadAnalysis extends AgentUpload
                 $excel_file = new ClientsHistoryExcel($input_file_name, $active_sheet_index, $mapper_xml);
                 $excel_import = new ImportIblockService($iblock_id);
                 $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $logger, $settings);
-
-                $logger->debug(
-                    "ImportAgentAnalysisFileExists: \n
-                    mapper_xml: {mapper_xml}\n
-                    mapper_loading: {mapper_loading}\n
-                    excel_file: {excel_file}",
-                    [
-                        'mapper_xml' => $mapper_xml,
-                        'mapper_loading' => $mapper_loading,
-                        'excel_file' => $excel_file,
-                    ]
-                );
 
                 if ($clear_columns === 'Y') {
                     $excel_file->clearColums($clear_columns_index, $clear_columns_num);

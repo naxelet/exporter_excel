@@ -75,6 +75,9 @@ $message = null;
 $update_existing = Option::get($module_id, 'UPDATE_EXISTING');
 $update_existing_sale = Option::get($module_id, 'UPDATE_EXISTING_SALE');
 $update_existing_analysis = Option::get($module_id, 'UPDATE_EXISTING_ANALYSIS');
+$skip_errors = Option::get($module_id, 'SKIP_ERRORS');
+$skip_errors_sale = Option::get($module_id, 'SKIP_ERRORS_SALE');
+$skip_errors_analysis = Option::get($module_id, 'SKIP_ERRORS_ANALYSIS');
 $start_row = Option::get($module_id, 'START_ROW');
 $start_row_sale = Option::get($module_id, 'START_ROW_SALE');
 $start_row_analysis = Option::get($module_id, 'START_ROW_ANALYSIS');
@@ -161,6 +164,24 @@ if ($request->isPost() && isset($request['apply']) && check_bitrix_sessid()) {
     } else {
         Option::set($module_id, 'UPDATE_EXISTING_ANALYSIS', '');
     }
+
+    if ($request['skip_errors'] === 'Y') {
+        Option::set($module_id, 'SKIP_ERRORS', 'Y');
+    } else {
+        Option::set($module_id, 'SKIP_ERRORS', '');
+    }
+
+    if ($request['skip_errors_sale'] === 'Y') {
+        Option::set($module_id, 'SKIP_ERRORS_SALE', 'Y');
+    } else {
+        Option::set($module_id, 'SKIP_ERRORS_SALE', '');
+    }
+
+    if ($request['skip_errors_analysis'] === 'Y') {
+        Option::set($module_id, 'SKIP_ERRORS_ANALYSIS', 'Y');
+    } else {
+        Option::set($module_id, 'SKIP_ERRORS_ANALYSIS', '');
+    }
     unset(
         $skip_errors,
         $start_row,
@@ -190,6 +211,12 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
         Option::set($module_id, 'UPDATE_EXISTING', 'Y');
     } else {
         Option::set($module_id, 'UPDATE_EXISTING', '');
+    }
+
+    if ($request['skip_errors'] === 'Y') {
+        Option::set($module_id, 'SKIP_ERRORS', 'Y');
+    } else {
+        Option::set($module_id, 'SKIP_ERRORS', '');
     }
 
     if (!empty($_FILES['xml_file']['tmp_name'])) {
@@ -293,7 +320,6 @@ if ($request->isPost() && isset($request['import']) && check_bitrix_sessid()) {
     }
     unset(
         $mode,
-        $skip_errors,
         $start_row,
         $clear_columns,
         $clear_columns_index,
@@ -386,7 +412,11 @@ $tabControl->Begin();
                                     <?= Loc::getMessage('AKATAN_EXCEL_UPDATE_EXISTING') ?>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px;">
-                                    <input type="checkbox" name="skip_errors" value="Y">
+                                    <input <?= ($skip_errors === 'Y') ? 'checked' : ''?>
+                                            type="checkbox"
+                                            name="skip_errors"
+                                            value="Y"
+                                    >
                                     <?= Loc::getMessage('AKATAN_EXCEL_SKIP_ERRORS') ?>
                                 </label>
                             </div>
@@ -522,7 +552,11 @@ $tabControl->Begin();
                                     <?= Loc::getMessage('AKATAN_EXCEL_UPDATE_EXISTING') ?>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px;">
-                                    <input type="checkbox" name="skip_errors_sale" value="Y">
+                                    <input <?= ($skip_errors_sale === 'Y') ? 'checked' : ''?>
+                                            type="checkbox"
+                                            name="skip_errors_sale"
+                                            value="Y"
+                                    >
                                     <?= Loc::getMessage('AKATAN_EXCEL_SKIP_ERRORS') ?>
                                 </label>
                             </div>
@@ -666,7 +700,11 @@ $tabControl->Begin();
                                     <?= Loc::getMessage('AKATAN_EXCEL_UPDATE_EXISTING') ?>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px;">
-                                    <input type="checkbox" name="skip_errors_analysis" value="Y">
+                                    <input <?= ($skip_errors_analysis === 'Y') ? 'checked' : ''?>
+                                            type="checkbox"
+                                            name="skip_errors_analysis"
+                                            value="Y"
+                                    >
                                     <?= Loc::getMessage('AKATAN_EXCEL_SKIP_ERRORS') ?>
                                 </label>
                             </div>

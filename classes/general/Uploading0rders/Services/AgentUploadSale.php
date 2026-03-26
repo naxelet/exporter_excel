@@ -20,6 +20,7 @@ class AgentUploadSale extends AgentUpload
         try {
             $iblock_id = (int)trim(htmlspecialcharsbx(Option::get(static::MODULE_ID, 'IBLOCK_ID', '')));
             $update_existing = Option::get(static::MODULE_ID, 'UPDATE_EXISTING_SALE');
+            $skip_errors_sale = Option::get(static::MODULE_ID, 'SKIP_ERRORS_SALE');
             $start_row = Option::get(static::MODULE_ID, 'START_ROW_SALE');
             $clear_columns = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_SALE');
             $clear_columns_index = Option::get(static::MODULE_ID, 'CLEAR_COLUMNS_INDEX_SALE');
@@ -36,14 +37,9 @@ class AgentUploadSale extends AgentUpload
             $logger->setLevel(\Psr\Log\LogLevel::DEBUG);
             $settings = [
                 'mode' => $mode,
+                'skip_errors' => ($skip_errors_sale === 'Y'),
             ];
 
-
-            $logger->debug('ImportAgentStart: ', [
-                'filePath' => $file_path,
-                'inputFileName' => $input_file_name,
-                'fileInfo' => $file_info,
-            ]);
             if (file_exists($input_file_name) && in_array(strtolower($file_info['extension']), static::ALLOWED_EXTENSIONS)) {
                 $mapper_xml = new ColumnExcelMapper();
                 $mapper_loading = new UploadingOrderMapper();

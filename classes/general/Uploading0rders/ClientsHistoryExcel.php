@@ -126,12 +126,6 @@ class ClientsHistoryExcel implements ImportExelInterface
                 $index_col = $mapping['index']; // Индекс начинается с 0
                 if ($index_col <= $highest_column_index) {
                     $value_col = $this->activeWorksheet->getCell([$index_col, $index_row])->getValue();
-                    $this->logger->info(
-                        "readRow::item: {value_col}",
-                        [
-                            'value_col' => $value_col
-                        ]
-                    );
                     $row[$mapping['code']] = ColumnExcelMapper::normalizeValue($value_col, $mapping['type'] ?? 'string');
                 }
             }
