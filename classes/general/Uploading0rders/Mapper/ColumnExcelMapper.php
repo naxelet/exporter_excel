@@ -16,7 +16,8 @@ class ColumnExcelMapper extends AbstractDataMapper
     {
         return [
             ['index' => 1, 'code' => 'BY_DATE', 'type' => 'date'],
-            ['index' => 2, 'code' => 'UF_USER_1C', 'type' => 'string'],
+//            ['index' => 2, 'code' => 'UF_USER_1C', 'type' => 'string'],
+            ['index' => 2, 'code' => 'BIND_USER_1C_STRING', 'type' => 'string'],
             ['index' => 3, 'code' => 'COUNTERPARTY', 'type' => 'string'],
             ['index' => 4, 'code' => 'ARTICLE', 'type' => 'string'],
             ['index' => 5, 'code' => 'NOMENCLATURE', 'type' => 'string'],

@@ -241,8 +241,9 @@ class Akatan_Exporterexcel extends CModule
             Option::set($this->MODULE_ID, 'IBLOCK_ID', $iblockId);
         }
 
-        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadSale::runImportFile();', $this->MODULE_ID, 'N', 60 );
-        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadAnalysis::runImportFile();', $this->MODULE_ID, 'N', 60 );
+        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadSale::runImportFile();', $this->MODULE_ID, 'N', 3600 );
+        \CAgent::AddAgent( '\Uploading0rders\Services\AgentUploadAnalysis::runImportFile();', $this->MODULE_ID, 'N', 3600 );
+        \CAgent::AddAgent( '\Uploading0rders\Services\AgentBindUser2Order::runBindUser2Order();', $this->MODULE_ID, 'N', 3600 );
         \CAgent::AddAgent( '\Uploading0rders\Services\Agent::deleteModuleLoadingFiles();', $this->MODULE_ID, 'N', 86400 );
 
         return true;
@@ -313,9 +314,15 @@ class Akatan_Exporterexcel extends CModule
                 'PROPERTY_TYPE' => 'N',
                 'IS_REQUIRED' => 'Y'
             ],
+            'BIND_USER_1C_STRING' => [
+                'NAME' => 'Связка Пользователь1С',
+                'SORT' => 900,
+                'PROPERTY_TYPE' => 'S',
+                'IS_REQUIRED' => 'Y'
+            ],
             'BIND_USER_1C' => [
                 'NAME' => 'Пользователь',
-                'SORT' => 900,
+                'SORT' => 1000,
                 'PROPERTY_TYPE' => 'S',
                 'IS_REQUIRED' => 'N',
                 'USER_TYPE' => 'UserID',

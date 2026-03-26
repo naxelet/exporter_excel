@@ -47,7 +47,7 @@ class AgentUploadSale extends AgentUpload
             if (file_exists($input_file_name) && in_array(strtolower($file_info['extension']), static::ALLOWED_EXTENSIONS)) {
                 $mapper_xml = new ColumnExcelMapper();
                 $mapper_loading = new UploadingOrderMapper();
-                $excel_file = new ClientsHistoryExcel($input_file_name, $active_sheet_index, $mapper_xml);
+                $excel_file = new ClientsHistoryExcel($input_file_name, $active_sheet_index, $logger, $mapper_xml);
                 $excel_import = new ImportIblockService($iblock_id);
                 $ib_processor = new InfoblockBatchProcessor($excel_import, $mapper_loading, $logger, $settings);
 
@@ -65,7 +65,7 @@ class AgentUploadSale extends AgentUpload
                 if (!$result->isSuccess()) {}
             }
         } catch (\Exception $exception) {
-            $logger->logger->error("Ошибка: " . $exception->getMessage(), [
+            $logger->error("Ошибка: " . $exception->getMessage(), [
                 'context' => $exception->getContext(),
             ]);
         } finally {

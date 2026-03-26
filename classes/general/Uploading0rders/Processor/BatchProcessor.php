@@ -117,7 +117,6 @@ abstract class BatchProcessor implements BatchProcessorInterface
     private function processRow(array $row, int $index): void
     {
         try {
-
             // Маппинг данных
             $mappedProps = $this->mapper->map($row, $index);
 

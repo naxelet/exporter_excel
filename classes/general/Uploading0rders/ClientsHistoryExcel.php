@@ -11,6 +11,7 @@ use \PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use \Uploading0rders\Interfaces\DataMapperInterface;
 use \Uploading0rders\Interfaces\ImportExelInterface;
 use \Uploading0rders\Mapper\ColumnExcelMapper;
+use \Psr\Log\LoggerInterface;
 
 //use \PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -29,7 +30,8 @@ class ClientsHistoryExcel implements ImportExelInterface
     public function __construct(
         private readonly string                     $inputFilePath,
         private int                                 $activeSheetIndex = 0,
-        private readonly ?DataMapperInterface $columnMapping = null
+        protected LoggerInterface                   $logger,
+        private readonly ?DataMapperInterface       $columnMapping = null,
     )
     {
         if (!file_exists($this->inputFilePath)) {
@@ -124,6 +126,12 @@ class ClientsHistoryExcel implements ImportExelInterface
                 $index_col = $mapping['index']; // Индекс начинается с 0
                 if ($index_col <= $highest_column_index) {
                     $value_col = $this->activeWorksheet->getCell([$index_col, $index_row])->getValue();
+                    $this->logger->info(
+                        "readRow::item: {value_col}",
+                        [
+                            'value_col' => $value_col
+                        ]
+                    );
                     $row[$mapping['code']] = ColumnExcelMapper::normalizeValue($value_col, $mapping['type'] ?? 'string');
                 }
             }

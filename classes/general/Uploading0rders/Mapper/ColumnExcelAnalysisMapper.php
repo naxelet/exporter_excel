@@ -15,7 +15,8 @@ class ColumnExcelAnalysisMapper extends AbstractDataMapper
     protected function buildMappingSchema(): array
     {
         return [
-            ['index' => 1, 'code' => 'UF_USER_1C', 'type' => 'string'],
+//            ['index' => 1, 'code' => 'UF_USER_1C', 'type' => 'string'],
+            ['index' => 1, 'code' => 'BIND_USER_1C_STRING', 'type' => 'string'],
             ['index' => 2, 'code' => 'COUNTERPARTY', 'type' => 'string'],
             ['index' => 3, 'code' => 'MOTION_DOCUMENT', 'type' => 'string'],
             ['index' => 4, 'code' => 'ARTICLE', 'type' => 'string'],

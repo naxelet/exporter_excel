@@ -110,25 +110,7 @@ class ImportIblockService
             }
             return $existingId;
         }
-        /*
-        $element_id = null;
-        $preparedFields['IBLOCK_ID'] = $this->getIblockId();
-        $arSelect = ['ID', 'NAME', 'CODE'];
-        $arFilter = ['IBLOCK_ID' => IntVal($preparedFields['IBLOCK_ID']), 'CODE' => $preparedFields['CODE']];
-        $res_element = \CIBlockElement::GetList([], $arFilter, false, false, $arSelect);
 
-        if ($res_element->SelectedRowsCount() > 0) {
-            while($fields_element = $res_element->GetNext())
-            {
-                if (!$element->Update($fields_element['ID'], $preparedFields)) {
-                    throw new ImportException(
-                        'Ошибка при обновлении элемента.' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_UPDATE_ERROR'),
-                        ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
-                    );
-                }
-                return (int) $fields_element['ID'];
-            }
-        }*/
         throw new ImportException(
             'Элемент не найден. CODE: ' . $preparedFields['CODE'], //Loc::getMessage('ELEMENT_EMPTY_UPDATE_ERROR'),
             ['errors' => $element->LAST_ERROR, 'fields' => $preparedFields]
@@ -152,9 +134,13 @@ class ImportIblockService
             $result['CODE'] = $this->generateCode($result['NAME']);
         }
 
-        if (!empty($result['PROPERTY_VALUES']['BIND_USER_1C'])) {
-            $result['PROPERTY_VALUES']['BIND_USER_1C'] = $this->findUserByExternalCode($result['PROPERTY_VALUES']['BIND_USER_1C']);
+        if (!empty($result['PROPERTY_VALUES']['BIND_USER_1C_STRING']) && strlen($result['PROPERTY_VALUES']['BIND_USER_1C_STRING']) < 9) {
+            $result['PROPERTY_VALUES']['BIND_USER_1C_STRING'] = str_pad($result['PROPERTY_VALUES']['BIND_USER_1C_STRING'], 9, '0', STR_PAD_LEFT);
         }
+
+        /*if (!empty($result['PROPERTY_VALUES']['BIND_USER_1C'])) {
+            $result['PROPERTY_VALUES']['BIND_USER_1C'] = $this->findUserByExternalCode($result['PROPERTY_VALUES']['BIND_USER_1C']);
+        }*/
 
         return $result;
     }

@@ -20,7 +20,8 @@ class UploadingOrderAnalysisMapper extends AbstractDataMapper
             ],
             'properties' => [
                 'BY_DATE'=> ['source' => 'BY_DATE', 'type' => 'date'],
-                'UF_USER_1C'=> ['source' => 'BIND_USER_1C', 'type' => 'string'],
+//                'UF_USER_1C'=> ['source' => 'BIND_USER_1C', 'type' => 'string'],
+                'BIND_USER_1C_STRING'=> ['source' => 'BIND_USER_1C_STRING', 'type' => 'string'],
                 'COUNTERPARTY' => ['source' => 'COUNTERPARTY', 'type' => 'string'],
                 'ARTICLE'=> ['source' => 'ARTICLE', 'type' => 'string'],
                 'NOMENCLATURE' => ['source' => 'NOMENCLATURE', 'type' => 'string'],
