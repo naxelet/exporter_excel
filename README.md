@@ -76,4 +76,7 @@ $ib_processor->import($excel_file->getRows(605));
 /upload/<module_id>/log/
 ```
 
-ToDo::ломается путь при установке в файле /bitrix/admin/akatan.exporterexcel__general.php
+ToDo::ломается путь при установке в файле /bitrix/admin/akatan.exporterexcel__general.php необходимо вставить
+```php
+<?php require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/akatan.exporterexcel/install/admin/general.php'?>
+```
